@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html data-bs-theme="auto" lang="en">
+
+<head>
+    <meta charset="utf-8">
+<!-- Matomo -->
+<script>
+  var _paq = window._paq = window._paq || [];
+  /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+  _paq.push(['trackPageView']);
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u="//analytics.adcmnetworks.co.uk/";
+    _paq.push(['setTrackerUrl', u+'matomo.php']);
+    _paq.push(['setSiteId', '2']);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<!-- End Matomo Code -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>Welcome to CS:Box</title>
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://csbox.mrdaviscsit.uk/assets/img/CSBoxLogo.svg">
+    <script type="application/ld+json">
+        {
+            "@context": "http://schema.org",
+            "@type": "WebSite",
+            "name": "CS:Box",
+            "url": "https://csbox.mrdaviscsit.uk"
+        }
+    </script>
+    <script>
+        (function() {
+
+            // JavaScript snippet handling Dark/Light mode switching
+
+            const getStoredTheme = () => localStorage.getItem('theme');
+            const setStoredTheme = theme => localStorage.setItem('theme', theme);
+            const forcedTheme = document.documentElement.getAttribute('data-bss-forced-theme');
+
+            const getPreferredTheme = () => {
+
+                if (forcedTheme) return forcedTheme;
+
+                const storedTheme = getStoredTheme();
+                if (storedTheme) {
+                    return storedTheme;
+                }
+
+                const pageTheme = document.documentElement.getAttribute('data-bs-theme');
+
+                if (pageTheme) {
+                    return pageTheme;
+                }
+
+                return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            }
+
+            const setTheme = theme => {
+                if (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    document.documentElement.setAttribute('data-bs-theme', 'dark');
+                } else {
+                    document.documentElement.setAttribute('data-bs-theme', theme);
+                }
+            }
+
+            setTheme(getPreferredTheme());
+
+            const showActiveTheme = (theme, focus = false) => {
+                const themeSwitchers = [].slice.call(document.querySelectorAll('.theme-switcher'));
+
+                if (!themeSwitchers.length) return;
+
+                document.querySelectorAll('[data-bs-theme-value]').forEach(element => {
+                    element.classList.remove('active');
+                    element.setAttribute('aria-pressed', 'false');
+                });
+
+                for (const themeSwitcher of themeSwitchers) {
+
+                    const btnToActivate = themeSwitcher.querySelector('[data-bs-theme-value="' + theme + '"]');
+
+                    if (btnToActivate) {
+                        btnToActivate.classList.add('active');
+                        btnToActivate.setAttribute('aria-pressed', 'true');
+                    }
+                }
+            }
+
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+                const storedTheme = getStoredTheme();
+                if (storedTheme !== 'light' && storedTheme !== 'dark') {
+                    setTheme(getPreferredTheme());
+                }
+            });
+
+            window.addEventListener('DOMContentLoaded', () => {
+                showActiveTheme(getPreferredTheme());
+
+                document.querySelectorAll('[data-bs-theme-value]')
+                    .forEach(toggle => {
+                        toggle.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            const theme = toggle.getAttribute('data-bs-theme-value');
+                            setStoredTheme(theme);
+                            setTheme(theme);
+                            showActiveTheme(theme);
+                        })
+                    })
+            });
+        })();
+    </script>
+    <link rel="icon" type="image/svg+xml" sizes="500x500" href="assets/img/CSBoxLogo.svg?h=ca838acaf7f1bc97e10657f07ed63d71">
+    <link rel="icon" type="image/svg+xml" sizes="500x500" href="assets/img/CSBoxLogo.svg?h=ca838acaf7f1bc97e10657f07ed63d71" media="(prefers-color-scheme: dark)">
+    <link rel="icon" type="image/svg+xml" sizes="500x500" href="assets/img/CSBoxLogo.svg?h=ca838acaf7f1bc97e10657f07ed63d71">
+    <link rel="icon" type="image/svg+xml" sizes="500x500" href="assets/img/CSBoxLogo.svg?h=ca838acaf7f1bc97e10657f07ed63d71" media="(prefers-color-scheme: dark)">
+    <link rel="icon" type="image/svg+xml" sizes="500x500" href="assets/img/CSBoxLogo.svg?h=ca838acaf7f1bc97e10657f07ed63d71">
+    <link rel="icon" type="image/svg+xml" sizes="500x500" href="assets/img/CSBoxLogo.svg?h=ca838acaf7f1bc97e10657f07ed63d71">
+    <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css?h=bec7173809e9299f24e368ea574911e3">
+    <link rel="stylesheet" href="assets/css/DSEG7%20Classic%20Regular.css">
+    <link rel="stylesheet" href="assets/css/IEC%20symbols%20Unicode.css?h=f58bcc159dfcde3a8902f3c3e5961248">
+    <link rel="stylesheet" href="assets/css/Inter.css?h=d12fe520d7f1a08f91c8333dfb12e0af">
+    <link rel="stylesheet" href="assets/css/Open%20Sans.css?h=ba41513e9a68a6b69b27fd4ab84c248d">
+    <link rel="stylesheet" href="assets/css/Seven%20Segment.css?h=f58bcc159dfcde3a8902f3c3e5961248">
+    <link rel="stylesheet" href="assets/css/bss-overrides.css?h=c465df5ec180459d04fa6be96fb73a3b">
+    <link rel="stylesheet" href="assets/css/Slider-Range.css?h=f8e9df474f99934e8bddde82bea5ff22">
+    <link rel="stylesheet" href="assets/css/styles.css?h=3e090fbf977edce98dcf9e4faea134e4">
+</head>
+
+<body>
+    <header class="bg-dark">
+        <!-- Start: Site Navigation -->
+        <nav class="navbar navbar-expand-md sticky-top py-3 navbar-dark" id="mainNav" style="background: rgb(45, 44, 56);">
+            <div class="container"><img src="assets/img/CSBoxLogo.svg?h=ca838acaf7f1bc97e10657f07ed63d71" style="width: 32px;margin: 5px;"><a class="navbar-brand d-flex align-items-center" href="/"><span>CS:Box</span></a><button data-bs-toggle="collapse" class="navbar-toggler" data-bs-target="#navcol-5"><span class="visually-hidden">Toggle navigation</span><span class="navbar-toggler-icon"></span></button>
+                <div class="collapse navbar-collapse" id="navcol-5">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item"><a class="nav-link active" href="/">Home</a></li>
+                        <li class="nav-item"><a class="nav-link" href="about">About</a></li>
+                        <li class="nav-item dropdown"><a class="dropdown-toggle nav-link" aria-expanded="false" data-bs-toggle="dropdown" data-bs-auto-close="false" href="#">Binary</a>
+                            <div class="dropdown-menu"><a class="dropdown-item" href="unsigned-binary">Unsigned Integers</a><a class="dropdown-item" href="twos-compliment-binary">Two's Compliment</a></div>
+                        </li>
+                        <li class="nav-item dropdown"><a class="dropdown-toggle nav-link" aria-expanded="false" data-bs-toggle="dropdown" data-bs-auto-close="false" href="#">Hexadecimal</a>
+                            <div class="dropdown-menu"><a class="dropdown-item" href="gcse-hexadecimal">GCSE</a><a class="dropdown-item" href="a-level-hexadecimal">A Level</a></div>
+                        </li>
+                        <li class="nav-item"><a class="nav-link" href="hex-colours">Hex Colours</a></li>
+                        <li class="nav-item dropdown"><a class="dropdown-toggle nav-link" aria-expanded="false" data-bs-toggle="dropdown" data-bs-auto-close="false" href="#">Logic Gates</a>
+                            <div class="dropdown-menu"><a class="dropdown-item" href="not-gate">NOT</a><a class="dropdown-item" href="and-gate">AND</a><a class="dropdown-item" href="or-gate">OR</a><a class="dropdown-item" href="nor-gate">NOR</a><a class="dropdown-item" href="nand-gate">NAND</a><a class="dropdown-item" href="xor-gate">XOR</a><a class="dropdown-item" href="xnor-gate">XNOR</a></div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav><!-- End: Site Navigation -->
+    </header><!-- Start: Hero Banner Color -->
+    <section class="d-print-none d-lg-none d-xl-none d-xxl-none py-4 py-xl-5">
+        <div class="container h-100">
+            <div class="text-white border rounded border-0 p-1 bg-danger">
+                <div class="row h-100">
+                    <div class="col-md-10 col-xl-8 text-center d-flex d-sm-flex d-md-flex justify-content-center align-items-center justify-content-md-start align-items-md-center justify-content-xl-center mx-auto">
+                        <div>
+                            <h1 class="text-uppercase fw-bold text-white mb-3" style="font-size: 24pt;">SITE&nbsp;Not Suitable for DEVICES WITH SMALLER SCREENS</h1>
+                            <p class="mb-4">This site is not suitable for mobile devices and tablets, please try accessing this site on a desktop or laptop.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section><!-- End: Hero Banner Color -->
+    <section class="d-none d-print-block d-sm-none d-md-none d-lg-block d-xl-block d-xxl-block">
+        <!-- Start: Hero Clean Reverse -->
+        <div class="container py-5">
+            <div class="row py-5">
+                <div class="col-md-6 text-center text-md-start d-flex d-sm-flex d-md-flex justify-content-center align-items-center justify-content-md-start align-items-md-center justify-content-xl-end mb-4">
+                    <div style="max-width: 450px;">
+                        <p class="fw-bold text-success mb-2">Version 1 Available Now</p>
+                        <h2 class="fw-bold">Understand Computer Science concepts better.</h2>
+                        <p class="completeFeatures"><strong>Coming Soon to CS:Box</strong></p>
+                        <p class="completeFeatures"></p>
+                        <p class="introP">Enhanced User Interface (UI) / User Experience (UX)<br>Interactive Lessons / Tutorials<br>Expanded Gate Functionality<br>Curriculum-Specific Tools<br>Classroom &amp; Teacher Tools<br>Enhanced Reporting / Analytics</p><a href="projects"><button class="btn btn-primary" type="button">Learn More</button></a>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <div class="p-5 mx-lg-5"><img class="rounded img-fluid shadow w-100 fit-cover" style="min-height: 300px;" src="assets/img/CSBoxLogo.svg?h=ca838acaf7f1bc97e10657f07ed63d71"></div>
+                </div>
+                <div class="col"></div>
+            </div>
+        </div><!-- End: Hero Clean Reverse -->
+    </section><!-- Start: Footer Multi Column -->
+    <footer style="background: rgb(45,44,56);">
+        <div class="container py-4 py-lg-5">
+            <div class="row justify-content-center">
+                <!-- Start: Branding -->
+                <div class="col-lg-3 text-center text-lg-start d-flex flex-column align-items-center order-first align-items-lg-start order-lg-last">
+                    <div class="fw-bold d-flex align-items-center mb-2"><img src="assets/img/CSBoxLogo.svg?h=ca838acaf7f1bc97e10657f07ed63d71" style="width: 32px;margin: 5px;"><span>CS:Box</span></div>
+                    <p class="text-muted">Computer Science Concept Simulators</p>
+                </div><!-- End: Branding -->
+            </div>
+            <hr>
+            <div class="text-muted d-flex justify-content-between align-items-center pt-3">
+                <p class="mb-0">Copyright © 2025 CS:Box<br>Powered By ADCM Networks</p>
+            </div>
+        </div>
+    </footer><!-- End: Footer Multi Column -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/binary.js?h=122236ea60351806f6898510a67d196b"></script>
+    <script src="assets/js/boldAndDark.js?h=78569998362133b84a76614652f3624f"></script>
+    <script src="assets/js/hexadecimal.js?h=ed5c6d92d71af17004fe145227303d9d"></script>
+    <script src="assets/js/hexColours.js?h=c64f15434dac1c095562a6a5fe8b155b"></script>
+    <script src="assets/js/logicGates.js?h=cb132aa615fb58918ab65db03c7face7"></script>
+</body>
+
+</html>
