@@ -1,6 +1,8 @@
-# CS:Box
-Evolution of Bit:Box to incorporate different elements of the UK Computing Curriculum
-Available at [csbox.mrdaviscsit.uk](https://csbox.mrdaviscsit.uk)
+# Computing:Box
+Formerly CS:Box - An evolution of Bit:Box to incorporate different elements of the UK Computing Curriculum
+Available at [www.computingbox.co.uk](https://www.computingbox.co.uk)
+
+![Computing:Box Logo](/assets/img/ComputingBox-Logo.png "Computing:Box Logo")
 
 ## Upcoming Features
 ### Original Bit:Box Features (October 2024)
@@ -25,3 +27,4 @@ Available at [csbox.mrdaviscsit.uk](https://csbox.mrdaviscsit.uk)
 - [ ] Two's Compliment Simulator
 
 ## Version 1.0 Release Date: 1<sup>st</sup> September 2025
+## Version 2.0 Release Date (Goal): 1<sup>st</sup> February 2025
