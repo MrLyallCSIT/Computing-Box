@@ -1,0 +1,52 @@
+/* src/styles/base.css */
+@import "./md3-tokens.css";
+html, body{ height:100%; }
+body{
+ margin:0;
+ font-family: var(--font-sans);
+ background: var(--md-surface-2);
+ color: var(--md-on-surface);
+}
+a{ color: var(--md-primary); text-decoration: none; }
+a:hover{ text-decoration: underline; }
+.container{
+ max-width: 1100px;
+ margin: 0 auto;
+ padding: 16px;
+}
+.card{
+ background: var(--md-surface);
+ border: 1px solid var(--md-outline);
+ border-radius: var(--radius-2);
+ box-shadow: var(--shadow-1);
+ padding: 16px;
+}
+.btn{
+ display:inline-flex;
+ gap:8px;
+ align-items:center;
+ justify-content:center;
+ border-radius: 999px;
+ border: 1px solid var(--md-outline);
+ background: var(--md-surface);
+ color: var(--md-on-surface);
+ padding: 10px 14px;
+ font-weight: 600;
+ cursor: pointer;
+}
+.btn:hover{ filter: brightness(0.98); }
+.btn:focus{ outline:none; box-shadow: var(--md-focus); }
+.btn-primary{
+ background: var(--md-primary);
+ color: var(--md-on-primary);
+ border-color: transparent;
+}
+.badge{
+ display:inline-block;
+ padding: 2px 10px;
+ border-radius: 999px;
+ font-size: 12px;
+ border: 1px solid var(--md-outline);
+ background: var(--md-surface-2);
+}
+code, pre{ font-family: var(--font-mono); }

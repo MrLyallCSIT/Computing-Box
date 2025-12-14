@@ -1,0 +1,293 @@
+---
+let initialBits = 8;
+---
+
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Binary | Computing:Box</title>
+
+<style>
+:root{
+  --bg:#1f2027;
+  --text:#e8e8ee;
+  --muted:#a9acb8;
+  --accent:#33ff7a;
+  --accent-dim:rgba(51,255,122,.2);
+  --line:rgba(255,255,255,.12);
+}
+
+@font-face{
+  font-family:"DSEG7";
+  src:url("/fonts/DSEG7Classic-Regular.woff") format("woff"),
+      url("/fonts/DSEG7Classic-Regular.ttf") format("truetype");
+}
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:system-ui,Segoe UI,Roboto,Arial;
+}
+
+.wrap{
+  max-width:1200px;
+  margin:auto;
+  padding:32px 20px 60px;
+  text-align:center;
+}
+
+.label{
+  letter-spacing:.18em;
+  color:var(--muted);
+  font-weight:700;
+}
+
+.num{
+  font-family:"DSEG7",monospace;
+  color:var(--accent);
+  text-shadow:0 0 18px var(--accent-dim);
+}
+
+.den{
+  font-size:64px;
+}
+
+.bin{
+  font-size:44px;
+  letter-spacing:.12em;
+  margin-bottom:12px;
+}
+
+.controls{
+  display:flex;
+  gap:10px;
+  justify-content:center;
+  flex-wrap:wrap;
+  margin:16px 0;
+}
+
+.btn{
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.15);
+  color:#fff;
+  padding:10px 14px;
+  border-radius:12px;
+  cursor:pointer;
+  font-weight:700;
+}
+
+.panel{
+  margin-top:20px;
+  display:flex;
+  gap:24px;
+  justify-content:center;
+  flex-wrap:wrap;
+}
+
+.card{
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:14px 16px;
+  min-width:220px;
+  text-align:left;
+}
+
+.card h4{
+  margin:0 0 8px;
+  font-size:13px;
+  letter-spacing:.14em;
+  color:var(--muted);
+}
+
+.bits{
+  margin-top:28px;
+  padding-top:24px;
+  border-top:1px solid var(--line);
+  display:flex;
+  justify-content:center;
+  gap:20px;
+  flex-wrap:wrap;
+}
+
+.bit{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:8px;
+}
+
+/* bulb */
+.bulb{
+  width:22px;
+  height:22px;
+  border-radius:50%;
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.12);
+}
+.bulb.on{
+  background:#ffd86b;
+  box-shadow:0 0 18px rgba(255,216,107,.7);
+}
+
+/* SAME SWITCH USED EVERYWHERE */
+.switch{
+  position:relative;
+  width:56px;
+  height:32px;
+}
+.switch input{opacity:0;width:0;height:0;}
+.slider{
+  position:absolute;
+  inset:0;
+  background:rgba(255,255,255,.15);
+  border-radius:999px;
+  transition:.2s;
+}
+.slider::before{
+  content:"";
+  position:absolute;
+  width:26px;
+  height:26px;
+  left:3px;
+  top:3px;
+  background:white;
+  border-radius:50%;
+  transition:.2s;
+}
+.switch input:checked + .slider{
+  background:rgba(51,255,122,.4);
+}
+.switch input:checked + .slider::before{
+  transform:translateX(24px);
+  background:var(--accent);
+}
+</style>
+</head>
+
+<body>
+<main class="wrap">
+
+<div class="label">DENARY</div>
+<div id="denary" class="num den">0</div>
+
+<div class="label">BINARY</div>
+<div id="binary" class="num bin">00000000</div>
+
+<div class="controls">
+  <button class="btn" id="customBinary">Custom Binary</button>
+  <button class="btn" id="customDenary">Custom Denary</button>
+  <button class="btn" id="shiftL">Left Shift</button>
+  <button class="btn" id="shiftR">Right Shift</button>
+</div>
+
+<div class="panel">
+  <div class="card">
+    <h4>MODE</h4>
+    Unsigned
+    <label class="switch">
+      <input type="checkbox" id="mode">
+      <span class="slider"></span>
+    </label>
+    Two’s complement
+  </div>
+
+  <div class="card">
+    <h4>BIT WIDTH</h4>
+    <input id="bitCount" type="number" min="4" max="64" value="8"
+      style="width:100%;padding:6px;border-radius:8px;border:none;">
+  </div>
+</div>
+
+<section class="bits" id="bits"></section>
+
+</main>
+
+<script type="module">
+let bits = 8;
+let twos = false;
+let state = [];
+
+const bitsEl = document.getElementById("bits");
+
+function build(){
+  state = Array(bits).fill(false);
+  bitsEl.innerHTML = "";
+  for(let i=bits-1;i>=0;i--){
+    const val = 2**i;
+    const div = document.createElement("div");
+    div.className="bit";
+    div.innerHTML=`
+      <div class="bulb" id="b${i}"></div>
+      <div class="num">${val}</div>
+      <label class="switch">
+        <input type="checkbox" data-i="${i}">
+        <span class="slider"></span>
+      </label>`;
+    bitsEl.appendChild(div);
+  }
+  document.querySelectorAll('[data-i]').forEach(sw=>{
+    sw.onchange=()=>{state[sw.dataset.i]=sw.checked;update();}
+  });
+  update();
+}
+
+function update(){
+  let n=0;
+  state.forEach((on,i)=>{
+    if(on) n+=2**i;
+    document.getElementById(`b${i}`).classList.toggle("on",on);
+  });
+
+  if(twos && state[bits-1]) n-=2**bits;
+
+  document.getElementById("denary").textContent=n;
+  document.getElementById("binary").textContent=
+    state.slice().reverse().map(b=>b?1:0).join("");
+}
+
+document.getElementById("mode").onchange=e=>{
+  twos=e.target.checked;
+  update();
+};
+
+document.getElementById("bitCount").onchange=e=>{
+  const v=Math.max(4,Math.min(64,Number(e.target.value)));
+  bits=v;
+  build();
+};
+
+document.getElementById("shiftL").onclick=()=>{
+  state.shift();state.push(false);update();
+};
+document.getElementById("shiftR").onclick=()=>{
+  state.pop();state.unshift(false);update();
+};
+
+document.getElementById("customBinary").onclick=()=>{
+  const v=prompt(`Enter ${bits}-bit binary`);
+  if(!v||!/^[01]+$/.test(v))return;
+  const p=v.padStart(bits,"0").slice(-bits);
+  state=p.split("").reverse().map(b=>b==="1");
+  build();
+};
+
+document.getElementById("customDenary").onclick=()=>{
+  const max=twos?(2**(bits-1)-1):(2**bits-1);
+  const min=twos?-(2**(bits-1)):0;
+  const n=Number(prompt(`Enter ${min} to ${max}`));
+  if(isNaN(n)||n<min||n>max)return;
+  let val=n<0?n+2**bits:n;
+  state=Array(bits).fill(false);
+  for(let i=0;i<bits;i++){
+    if(val>=2**i){state[i]=true;val-=2**i;}
+  }
+  build();
+};
+
+build();
+</script>
+</body>
+</html>
