@@ -1,642 +1,88 @@
 ---
-/**
- * src/pages/binary.astro
- * Single-file binary simulator (Unsigned + Two's complement)
- * Bit width: 4..64
- *
- * Requires:
- *  public/fonts/DSEG7Classic-Regular.woff
- *  public/fonts/DSEG7Classic-Regular.ttf
- */
+import BaseLayout from "../layouts/BaseLayout.astro";
 ---
 
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Binary | Computing:Box</title>
+<BaseLayout title="Binary | Computing:Box">
+  <!-- Page-specific CSS -->
+  <link rel="stylesheet" href="/styles/binary.css" />
 
-    <style>
-      :root{
-        --bg: #1f2027;
-        --panel: #22242d;
-        --panel2:#262833;
-        --text: #e8e8ee;
-        --muted: #a9acb8;
-        --accent: #33ff7a;
-        --accent-dim: rgba(51,255,122,.15);
-        --line: rgba(255,255,255,.12);
-      }
+  <main class="wrap">
+    <section class="topGrid">
+      <!-- LEFT: readout + buttons + bits -->
+      <div>
+        <div class="readout">
+          <div class="label">Denary</div>
+          <div id="denaryNumber" class="num denary">0</div>
 
-      @font-face{
-        font-family: "DSEG7ClassicRegular";
-        src:
-          url("/fonts/DSEG7Classic-Regular.woff") format("woff"),
-          url("/fonts/DSEG7Classic-Regular.ttf") format("truetype");
-        font-weight: 400;
-        font-style: normal;
-        font-display: swap;
-      }
+          <div class="label">Binary</div>
+          <div id="binaryNumber" class="num binary">00000000</div>
 
-      body{
-        margin:0;
-        font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-        background: var(--bg);
-        color: var(--text);
-      }
-
-      .wrap{
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 32px 20px 60px;
-      }
-
-      /* Layout: readout left, settings panel right (like your screenshot) */
-      .layout{
-        display:grid;
-        grid-template-columns: 1fr 360px;
-        gap: 22px;
-        align-items:start;
-      }
-
-      .readout{
-        text-align:center;
-        padding: 10px 10px 0;
-      }
-
-      .label{
-        letter-spacing: .18em;
-        font-weight: 700;
-        color: var(--muted);
-        text-transform: uppercase;
-        font-size: 16px;
-        margin-top: 8px;
-      }
-
-      .num{
-        font-family: "DSEG7ClassicRegular", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-        font-weight: 400;
-        color: var(--accent);
-        text-shadow: 0 0 18px var(--accent-dim);
-      }
-
-      .value{
-        font-size: 70px;
-        line-height: 1.0;
-        margin: 6px 0 16px;
-      }
-
-      .binary{
-        font-size: 54px;
-        letter-spacing: .12em;
-        word-break: break-all;
-      }
-
-      /* Buttons under readout (as requested) */
-      .controls{
-        margin-top: 16px;
-        display:flex;
-        gap: 12px;
-        justify-content:center;
-        flex-wrap:wrap;
-      }
-
-      .btn{
-        background: rgba(255,255,255,.06);
-        border: 1px solid rgba(255,255,255,.14);
-        color: #fff;
-        padding: 12px 14px;
-        border-radius: 12px;
-        font-weight: 700;
-        cursor: pointer;
-        min-width: 160px;
-      }
-      .btn:active{ transform: translateY(1px); }
-
-      /* Settings panel cards */
-      .panel{
-        background: rgba(255,255,255,.04);
-        border: 1px solid rgba(255,255,255,.10);
-        border-radius: 14px;
-        padding: 16px 16px 14px;
-        margin-bottom: 14px;
-      }
-      .panelTitle{
-        font-size: 12px;
-        letter-spacing: .16em;
-        text-transform: uppercase;
-        color: var(--muted);
-        font-weight: 800;
-        margin-bottom: 10px;
-      }
-      .panelRow{
-        display:flex;
-        align-items:center;
-        justify-content:space-between;
-        gap: 12px;
-      }
-      .hint{
-        color: var(--muted);
-        font-size: 12px;
-        margin-top: 10px;
-        line-height: 1.35;
-      }
-
-      /* Reusable toggle switch (for MODE and for each BIT) */
-      .switch{
-        position: relative;
-        width: 56px;
-        height: 34px;
-        display:inline-block;
-        flex: 0 0 auto;
-      }
-      .switch input{
-        opacity:0;
-        width:0;
-        height:0;
-      }
-      .slider{
-        position:absolute;
-        inset:0;
-        background: rgba(255,255,255,.10);
-        border: 1px solid rgba(255,255,255,.14);
-        border-radius: 999px;
-        transition: .18s ease;
-      }
-      .slider::before{
-        content:"";
-        position:absolute;
-        height: 28px;
-        width: 28px;
-        left: 3px;
-        top: 2px;
-        background: rgba(255,255,255,.92);
-        border-radius: 50%;
-        transition: .18s ease;
-      }
-      .switch input:checked + .slider{
-        background: rgba(51,255,122,.20);
-        border-color: rgba(51,255,122,.55);
-      }
-      .switch input:checked + .slider::before{
-        transform: translateX(22px);
-        background: var(--accent);
-      }
-
-      /* Bit width controls */
-      .bwControls{
-        display:grid;
-        grid-template-columns: 44px 1fr 44px;
-        gap: 10px;
-        align-items:center;
-        margin-top: 8px;
-      }
-      .bwBtn{
-        width: 44px;
-        height: 44px;
-        border-radius: 12px;
-        border: 1px solid rgba(255,255,255,.14);
-        background: rgba(255,255,255,.06);
-        color: #fff;
-        font-weight: 900;
-        cursor: pointer;
-      }
-      .bwBtn:active{ transform: translateY(1px); }
-
-      .bwInput{
-        display:flex;
-        align-items:center;
-        justify-content:space-between;
-        gap: 12px;
-        background: rgba(255,255,255,.05);
-        border: 1px solid rgba(255,255,255,.12);
-        border-radius: 12px;
-        padding: 10px 12px;
-      }
-      .bwLabel{
-        color: var(--muted);
-        font-size: 12px;
-        letter-spacing: .14em;
-        text-transform: uppercase;
-        font-weight: 800;
-      }
-      .bwField{
-        width: 100px;
-        text-align:right;
-        background: transparent;
-        border: none;
-        outline: none;
-        color: var(--accent);
-        font-family: "DSEG7ClassicRegular", ui-monospace, monospace;
-        font-size: 26px;
-        padding: 0;
-      }
-      .bwField::-webkit-outer-spin-button,
-      .bwField::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-      .bwField[type=number] { -moz-appearance: textfield; }
-
-      /* Bits grid */
-      .bits{
-        margin-top: 34px;
-        padding-top: 26px;
-        border-top: 1px solid var(--line);
-        display:grid;
-        gap: 18px;
-        align-items:end;
-        text-align:center;
-      }
-
-      .bit{
-        display:flex;
-        flex-direction:column;
-        align-items:center;
-        gap: 10px;
-        padding: 8px 4px;
-      }
-
-      .bitVal{
-        font-size: 34px;
-        color: var(--text);
-        opacity: .95;
-      }
-
-      /* Bulb (must come back!) */
-      .bulb{
-        width: 22px;
-        height: 22px;
-        border-radius: 50%;
-        background: rgba(255,255,255,.08);
-        border: 1px solid rgba(255,255,255,.12);
-        box-shadow: none;
-        margin-bottom: 6px;
-      }
-      .bulb.on{
-        background: #ffd86b;
-        border-color: rgba(255,216,107,.7);
-        box-shadow: 0 0 18px rgba(255,216,107,.6);
-      }
-
-      /* Responsive */
-      @media (max-width: 1000px){
-        .layout{ grid-template-columns: 1fr; }
-        .value{ font-size: 60px; }
-        .binary{ font-size: 44px; }
-      }
-      @media (max-width: 900px){
-        .value{ font-size: 54px; }
-        .binary{ font-size: 36px; }
-        .btn{ min-width: 140px; }
-      }
-    </style>
-  </head>
-
-  <body>
-    <main class="wrap">
-      <section class="layout">
-        <!-- LEFT: readout + buttons -->
-        <div>
-          <div class="readout">
-            <div class="label">Denary</div>
-            <div id="denaryNumber" class="value num">0</div>
-
-            <div class="label">Binary</div>
-            <div id="binaryNumber" class="value binary num">00000000</div>
-
-            <div class="controls">
-              <button class="btn" id="btnCustomBinary" type="button">Custom Binary</button>
-              <button class="btn" id="btnCustomDenary" type="button">Custom Denary</button>
-              <button class="btn" id="btnShiftLeft" type="button">Left Shift</button>
-              <button class="btn" id="btnShiftRight" type="button">Right Shift</button>
-            </div>
+          <div class="controls">
+            <button class="btn" id="btnCustomBinary" type="button">Custom Binary</button>
+            <button class="btn" id="btnCustomDenary" type="button">Custom Denary</button>
+            <button class="btn" id="btnShiftLeft" type="button">Left Shift</button>
+            <button class="btn" id="btnShiftRight" type="button">Right Shift</button>
           </div>
-
-          <!-- Bits grid (built by JS so bit-width 4..64 works) -->
-          <section id="bitsGrid" class="bits" aria-label="Bit switches"></section>
         </div>
 
-        <!-- RIGHT: settings panel -->
-        <aside>
-          <div class="panel">
-            <div class="panelTitle">Mode</div>
-            <div class="panelRow">
-              <span style="font-weight:800;">Unsigned</span>
+        <div class="divider"></div>
 
-              <!-- MODE TOGGLE uses SAME switch style -->
-              <label class="switch" aria-label="Toggle Two's complement mode">
-                <input id="modeToggle" type="checkbox" />
-                <span class="slider"></span>
-              </label>
+        <!-- Bits render here (JS builds bulbs + switches) -->
+        <section class="bits" id="bitsGrid" aria-label="Bit switches"></section>
+      </div>
 
-              <span style="font-weight:800;">Two’s complement</span>
-            </div>
-            <div class="hint">
-              Tip: In two’s complement, the left-most bit (MSB) represents a negative value.
-            </div>
+      <!-- RIGHT: mode + bit width -->
+      <aside class="panelCol">
+        <div class="card">
+          <div class="cardTitle">Mode</div>
+
+          <div class="toggleRow">
+            <div class="toggleLabel" id="lblUnsigned">Unsigned</div>
+
+            <!-- SAME SWITCH STYLE as bit switches -->
+            <label class="switch" aria-label="Toggle mode">
+              <input id="modeToggle" type="checkbox" />
+              <span class="slider"></span>
+            </label>
+
+            <div class="toggleLabel" id="lblTwos">Two’s complement</div>
           </div>
 
-          <div class="panel">
-            <div class="panelTitle">Bit width</div>
-
-            <div class="bwControls">
-              <button class="bwBtn" id="btnBitsDown" type="button" aria-label="Decrease bits">−</button>
-
-              <div class="bwInput">
-                <div class="bwLabel">Bits</div>
-                <input
-                  id="bitsField"
-                  class="bwField"
-                  type="number"
-                  min="4"
-                  max="64"
-                  step="1"
-                  value="8"
-                  inputmode="numeric"
-                />
-              </div>
-
-              <button class="bwBtn" id="btnBitsUp" type="button" aria-label="Increase bits">+</button>
-            </div>
-
-            <div class="hint">
-              Minimum 4 bits, maximum 64 bits.
-            </div>
+          <div class="hint" id="modeHint">
+            Tip: In unsigned binary, all bits represent positive values.
           </div>
-        </aside>
-      </section>
-    </main>
+        </div>
 
-    <script type="module">
-      // ---------- State ----------
-      let bitsCount = 8;           // 4..64
-      let isTwos = false;          // false = unsigned
-      let bitStates = [];          // MSB -> LSB booleans
+        <div class="card">
+          <div class="cardTitle">Bit width</div>
 
-      // ---------- Helpers ----------
-      function clamp(n, min, max){ return Math.min(max, Math.max(min, n)); }
+          <div class="bitWidthRow">
+            <button class="miniBtn" id="btnBitsDown" type="button" aria-label="Decrease bits">−</button>
 
-      function pow2(n){
-        // for up to 64 bits, Number is still OK for *visual simulator*.
-        // if you later want exact 64-bit maths, swap to BigInt end-to-end.
-        return 2 ** n;
-      }
+            <div class="bitInputWrap">
+              <div class="bitInputLabel">Bits</div>
+              <input
+                id="bitsInput"
+                class="bitInput"
+                type="number"
+                inputmode="numeric"
+                min="4"
+                max="64"
+                step="1"
+                value="8"
+                aria-label="Number of bits"
+              />
+            </div>
 
-      function getPlaceValues(){
-        // MSB -> LSB
-        // Unsigned: [2^(n-1), ..., 1]
-        // Two's:    [-2^(n-1), 2^(n-2), ..., 1]
-        const vals = [];
-        for (let i = 0; i < bitsCount; i++){
-          const power = bitsCount - 1 - i;
-          if (isTwos && i === 0){
-            vals.push(-pow2(power));
-          } else {
-            vals.push(pow2(power));
-          }
-        }
-        return vals;
-      }
+            <button class="miniBtn" id="btnBitsUp" type="button" aria-label="Increase bits">+</button>
+          </div>
 
-      function binaryString(){
-        return bitStates.map(b => (b ? "1" : "0")).join("");
-      }
+          <div class="hint">Minimum 4 bits, maximum 64 bits. Display wraps every 8 bits.</div>
+        </div>
+      </aside>
+    </section>
+  </main>
 
-      function denaryValue(){
-        const values = getPlaceValues();
-        let sum = 0;
-        for (let i = 0; i < bitsCount; i++){
-          if (bitStates[i]) sum += values[i];
-        }
-        return sum;
-      }
-
-      function rangeForMode(){
-        if (!isTwos){
-          return { min: 0, max: pow2(bitsCount) - 1 };
-        }
-        return { min: -pow2(bitsCount - 1), max: pow2(bitsCount - 1) - 1 };
-      }
-
-      function updateReadout(){
-        document.getElementById("binaryNumber").innerText = binaryString();
-        document.getElementById("denaryNumber").innerText = String(denaryValue());
-
-        // bulb on/off updates:
-        for (let i = 0; i < bitsCount; i++){
-          const bulb = document.getElementById(`bulb-${i}`);
-          if (bulb) bulb.classList.toggle("on", !!bitStates[i]);
-        }
-      }
-
-      // ---------- DOM build for bits grid ----------
-      function setBitsGridColumns(){
-        const grid = document.getElementById("bitsGrid");
-        // make it adapt (up to 16 per row max, then wraps)
-        const cols = clamp(bitsCount, 4, 16);
-        grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
-      }
-
-      function buildBitsGrid(){
-        const grid = document.getElementById("bitsGrid");
-        grid.innerHTML = "";
-
-        setBitsGridColumns();
-
-        const values = getPlaceValues();
-
-        for (let i = 0; i < bitsCount; i++){
-          const v = values[i];
-
-          const bit = document.createElement("div");
-          bit.className = "bit";
-
-          const bulb = document.createElement("div");
-          bulb.className = "bulb";
-          bulb.id = `bulb-${i}`;
-          bulb.setAttribute("aria-hidden", "true");
-
-          const val = document.createElement("div");
-          val.className = "bitVal num";
-          // show absolute label for MSB in twos? No — show the actual negative value (clear to students).
-          val.textContent = String(v);
-
-          // IMPORTANT: bit switch must be the SAME style as MODE switch
-          const label = document.createElement("label");
-          label.className = "switch";
-          label.setAttribute("aria-label", `Toggle bit ${v}`);
-
-          const input = document.createElement("input");
-          input.type = "checkbox";
-          input.dataset.index = String(i);
-          input.checked = !!bitStates[i];
-
-          const slider = document.createElement("span");
-          slider.className = "slider";
-
-          input.addEventListener("change", () => {
-            bitStates[i] = input.checked;
-            updateReadout();
-          });
-
-          label.appendChild(input);
-          label.appendChild(slider);
-
-          bit.appendChild(bulb);
-          bit.appendChild(val);
-          bit.appendChild(label);
-          grid.appendChild(bit);
-        }
-
-        updateReadout();
-      }
-
-      // ---------- Set state from binary / denary ----------
-      function setFromBinary(bin){
-        const clean = String(bin).replace(/\s+/g, "");
-        if (!/^[01]+$/.test(clean)) return false;
-
-        const padded = clean.slice(-bitsCount).padStart(bitsCount, "0");
-        bitStates = [...padded].map(ch => ch === "1");
-
-        // update toggles without rebuilding
-        for (let i = 0; i < bitsCount; i++){
-          const toggle = document.querySelector(`input[type="checkbox"][data-index="${i}"]`);
-          if (toggle) toggle.checked = bitStates[i];
-        }
-        updateReadout();
-        return true;
-      }
-
-      function setFromDenary(n){
-        const num = Number(n);
-        if (!Number.isInteger(num)) return false;
-
-        const { min, max } = rangeForMode();
-        if (num < min || num > max) return false;
-
-        // convert to bit pattern
-        let unsignedVal;
-        if (!isTwos){
-          unsignedVal = num;
-        } else {
-          // two's complement representation
-          unsignedVal = num < 0 ? (pow2(bitsCount) + num) : num;
-        }
-
-        // build MSB->LSB bits from unsignedVal
-        const newBits = [];
-        for (let i = 0; i < bitsCount; i++){
-          const power = bitsCount - 1 - i;
-          const bit = Math.floor(unsignedVal / pow2(power)) % 2;
-          newBits.push(bit === 1);
-        }
-        bitStates = newBits;
-
-        for (let i = 0; i < bitsCount; i++){
-          const toggle = document.querySelector(`input[type="checkbox"][data-index="${i}"]`);
-          if (toggle) toggle.checked = bitStates[i];
-        }
-        updateReadout();
-        return true;
-      }
-
-      // ---------- Shifts ----------
-      function shiftLeft(){
-        // logical left shift: drop MSB, add 0 at LSB
-        bitStates = bitStates.slice(1).concat(false);
-        buildBitsGrid(); // rebuild keeps labels correct if mode changed (also updates bulbs)
-      }
-
-      function shiftRight(){
-        if (!isTwos){
-          // logical right shift
-          bitStates = [false].concat(bitStates.slice(0, -1));
-        } else {
-          // arithmetic right shift (preserve MSB)
-          const msb = bitStates[0];
-          bitStates = [msb].concat(bitStates.slice(0, -1));
-        }
-        buildBitsGrid();
-      }
-
-      // ---------- Bit width ----------
-      function applyBitsCount(next){
-        const wanted = clamp(Number(next) || 8, 4, 64);
-        if (wanted === bitsCount) return;
-
-        // keep the right-most (LSB) bits when resizing (feels natural)
-        const old = binaryString();
-        bitsCount = wanted;
-
-        // rebuild state from old binary, keeping LSBs
-        const padded = old.slice(-bitsCount).padStart(bitsCount, "0");
-        bitStates = [...padded].map(ch => ch === "1");
-
-        document.getElementById("bitsField").value = String(bitsCount);
-        buildBitsGrid();
-      }
-
-      // ---------- Mode toggle ----------
-      function applyMode(nextIsTwos){
-        const prevDenary = denaryValue(); // keep the *value* if possible
-        isTwos = !!nextIsTwos;
-
-        // Try to keep the denary value, but clamp if it becomes invalid in the new mode
-        const { min, max } = rangeForMode();
-        const kept = clamp(prevDenary, min, max);
-        setFromDenary(kept);
-
-        buildBitsGrid();
-      }
-
-      // ---------- Wire up UI ----------
-      function wireUI(){
-        document.getElementById("btnShiftLeft").addEventListener("click", shiftLeft);
-        document.getElementById("btnShiftRight").addEventListener("click", shiftRight);
-
-        document.getElementById("btnCustomBinary").addEventListener("click", () => {
-          const val = prompt(`Enter a binary number (up to ${bitsCount} bits):`);
-          if (val === null) return;
-          if (!setFromBinary(val)) alert("Invalid input. Use only 0 and 1.");
-        });
-
-        document.getElementById("btnCustomDenary").addEventListener("click", () => {
-          const { min, max } = rangeForMode();
-          const val = prompt(`Enter a denary number (${min} to ${max}):`);
-          if (val === null) return;
-          if (!setFromDenary(val)) alert(`Invalid input. Enter an integer from ${min} to ${max}.`);
-        });
-
-        // Mode toggle
-        const modeToggle = document.getElementById("modeToggle");
-        modeToggle.addEventListener("change", () => applyMode(modeToggle.checked));
-
-        // Bit width +/- and manual entry
-        document.getElementById("btnBitsDown").addEventListener("click", () => applyBitsCount(bitsCount - 1));
-        document.getElementById("btnBitsUp").addEventListener("click", () => applyBitsCount(bitsCount + 1));
-
-        const bitsField = document.getElementById("bitsField");
-        bitsField.addEventListener("change", () => applyBitsCount(bitsField.value));
-        bitsField.addEventListener("blur", () => applyBitsCount(bitsField.value));
-        bitsField.addEventListener("keydown", (e) => {
-          if (e.key === "Enter") applyBitsCount(bitsField.value);
-        });
-      }
-
-      // ---------- Init ----------
-      function init(){
-        // default: 8-bit unsigned
-        bitsCount = 8;
-        isTwos = false;
-        bitStates = Array(bitsCount).fill(false);
-
-        document.getElementById("modeToggle").checked = false;
-        document.getElementById("bitsField").value = String(bitsCount);
-
-        wireUI();
-        buildBitsGrid();
-      }
-
-      init();
-    </script>
-  </body>
-</html>
+  <!-- Page-specific JS -->
+  <script type="module" src="/scripts/binary.js"></script>
+</BaseLayout>

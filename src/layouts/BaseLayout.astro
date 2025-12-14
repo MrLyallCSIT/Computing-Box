@@ -1,17 +1,26 @@
 ---
-// src/layouts/BaseLayout.astro
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+
 const { title = "Computing:Box" } = Astro.props;
 ---
 <!doctype html>
 <html lang="en">
- <head>
- <meta charset="utf-8" />
- <meta name="viewport" content="width=device-width, initial-scale=1" />
- <title>{title}</title>
- <link rel="stylesheet" href="/styles.css" />
- <link rel="stylesheet" href="/fonts/DSEG7Classic-Regular.css">
- </head>
- <body>
- <slot />
- </body>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>{title}</title>
+
+    <!-- Global site styles -->
+    <link rel="stylesheet" href="/styles/global.css" />
+  </head>
+  <body>
+    <SiteHeader />
+
+    <main class="site-main">
+      <slot />
+    </main>
+
+    <SiteFooter />
+  </body>
 </html>
