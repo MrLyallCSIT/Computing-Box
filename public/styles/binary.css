@@ -1,14 +1,4 @@
-:root{
-  --bg: #1f2027;
-  --panel2: rgba(255,255,255,.04);
-  --text: #e8e8ee;
-  --muted: #a9acb8;
-  --accent: #33ff7a;
-  --accent-dim: rgba(51,255,122,.15);
-  --line: rgba(255,255,255,.12);
-}
-
-/* DSEG font (you already have these in public/fonts/) */
+/* Font */
 @font-face{
   font-family: "DSEG7ClassicRegular";
   src:
@@ -19,10 +9,8 @@
   font-display: swap;
 }
 
-.wrap{
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 32px 20px 60px;
+.binaryWrap{
+  padding-top: 8px;
 }
 
 .topGrid{
@@ -33,7 +21,6 @@
 }
 
 .readout{
-  background: transparent;
   text-align:center;
   padding: 10px 10px 0;
 }
@@ -43,7 +30,7 @@
   font-weight: 800;
   color: var(--muted);
   text-transform: uppercase;
-  font-size: 14px;
+  font-size: 13px;
   margin-top: 10px;
 }
 
@@ -55,16 +42,16 @@
 }
 
 .denary{
-  font-size: 84px;
-  line-height: 1.0;
-  margin: 6px 0 16px;
+  font-size: 70px;  /* smaller than before */
+  line-height: 1;
+  margin: 6px 0 10px;
 }
 
 .binary{
-  font-size: 62px;
+  font-size: 54px;  /* smaller than before */
   letter-spacing: .12em;
-  line-height: 1.0;
-  margin: 6px 0 18px;
+  line-height: 1;
+  margin: 6px 0 16px;
 }
 
 .controls{
@@ -81,7 +68,7 @@
   color: #fff;
   padding: 12px 14px;
   border-radius: 12px;
-  font-weight: 800;
+  font-weight: 700;
   cursor: pointer;
   min-width: 160px;
 }
@@ -92,7 +79,7 @@
   border-top: 1px solid var(--line);
 }
 
-/* Right panels */
+/* Right-side cards */
 .panelCol{
   display:flex;
   flex-direction:column;
@@ -135,7 +122,7 @@
   font-size: 14px;
 }
 
-/* Switch (re-used for mode + bits) */
+/* Switch (reused for mode + bits) */
 .switch{
   position: relative;
   width: 56px;
@@ -144,6 +131,7 @@
   flex: 0 0 auto;
 }
 .switch input{
+  position:absolute;
   opacity:0;
   width:0;
   height:0;
@@ -176,7 +164,7 @@
   background: var(--accent);
 }
 
-/* Bit width controls */
+/* Bit-width control */
 .bitWidthRow{
   display:grid;
   grid-template-columns: 44px 1fr 44px;
@@ -191,7 +179,7 @@
   background: rgba(255,255,255,.06);
   border: 1px solid rgba(255,255,255,.14);
   color: #fff;
-  cursor:pointer;
+  cursor: pointer;
   font-weight: 900;
   font-size: 18px;
 }
@@ -219,8 +207,8 @@
   width: 86px;
   text-align:right;
   background: transparent;
-  border: none;
-  outline: none;
+  border:none;
+  outline:none;
   color: var(--accent);
   font-family: "DSEG7ClassicRegular", ui-monospace, monospace;
   font-size: 28px;
@@ -231,63 +219,66 @@
   margin:0;
 }
 
-/* ✅ Bits grid: wraps every 8 bits, NO horizontal scroll bar */
-.bits{
-  margin-top: 26px;
-  padding-top: 22px;
-  display:grid;
-  grid-template-columns: repeat(8, minmax(90px, 1fr));
+/* Bits: wrap every 8 (rows built in JS) */
+.bitsRows{
+  margin-top: 22px;
+  display:flex;
+  flex-direction:column;
   gap: 18px;
-  align-items:end;
-  text-align:center;
-
-  /* make absolutely sure we don't create a horizontal scrollbar */
-  overflow-x: hidden;
 }
 
-/* Bit tile */
+/* A row of up to 8 bits */
+.byteRow{
+  display:flex;
+  justify-content:center;
+  gap: 18px;
+  flex-wrap:nowrap;
+}
+
+/* A single bit */
 .bit{
+  width: 110px;
   display:flex;
   flex-direction:column;
   align-items:center;
   gap: 10px;
-  padding: 8px 4px;
+  padding: 6px 4px;
 }
 
+/* Bulb emoji: bigger */
 .bulb{
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: rgba(255,255,255,.08);
-  border: 1px solid rgba(255,255,255,.12);
-  box-shadow: none;
-  margin-bottom: 4px;
+  font-size: 30px;
+  line-height: 1;
+  opacity: .20;
+  filter: grayscale(1);
+  transform: translateY(2px);
 }
 .bulb.on{
-  background: #ffd86b;
-  border-color: rgba(255,216,107,.7);
-  box-shadow: 0 0 18px rgba(255,216,107,.6);
+  opacity: 1;
+  filter: grayscale(0);
+  text-shadow: 0 0 16px rgba(255,216,107,.65);
 }
 
 .bitVal{
   font-family: "DSEG7ClassicRegular", ui-monospace, monospace;
   font-size: 30px;
   color: var(--text);
-  opacity: .95;
-  line-height: 1;
+  opacity: .92;
   min-height: 34px;
 }
 
-/* Responsive */
+/* Responsiveness */
 @media (max-width: 980px){
   .topGrid{ grid-template-columns: 1fr; }
-  .denary{ font-size: 72px; }
-  .binary{ font-size: 52px; }
-  .bits{ grid-template-columns: repeat(4, minmax(90px, 1fr)); }
+  .denary{ font-size: 62px; }
+  .binary{ font-size: 48px; }
+  .bit{ width: 96px; }
 }
 
 @media (max-width: 520px){
-  .denary{ font-size: 62px; }
-  .binary{ font-size: 44px; }
+  .denary{ font-size: 56px; }
+  .binary{ font-size: 42px; }
   .btn{ min-width: 140px; }
+  .byteRow{ gap: 12px; }
+  .bit{ width: 86px; }
 }

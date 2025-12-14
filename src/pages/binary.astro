@@ -3,12 +3,11 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 ---
 
 <BaseLayout title="Binary | Computing:Box">
-  <!-- Page-specific CSS -->
   <link rel="stylesheet" href="/styles/binary.css" />
 
-  <main class="wrap">
-    <section class="topGrid">
-      <!-- LEFT: readout + buttons + bits -->
+  <section class="binaryWrap">
+    <div class="topGrid">
+      <!-- LEFT -->
       <div>
         <div class="readout">
           <div class="label">Denary</div>
@@ -27,11 +26,11 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
         <div class="divider"></div>
 
-        <!-- Bits render here (JS builds bulbs + switches) -->
-        <section class="bits" id="bitsGrid" aria-label="Bit switches"></section>
+        <!-- Bit rows injected by JS -->
+        <section id="bitsRows" class="bitsRows" aria-label="Bit switches"></section>
       </div>
 
-      <!-- RIGHT: mode + bit width -->
+      <!-- RIGHT -->
       <aside class="panelCol">
         <div class="card">
           <div class="cardTitle">Mode</div>
@@ -39,13 +38,12 @@ import BaseLayout from "../layouts/BaseLayout.astro";
           <div class="toggleRow">
             <div class="toggleLabel" id="lblUnsigned">Unsigned</div>
 
-            <!-- SAME SWITCH STYLE as bit switches -->
             <label class="switch" aria-label="Toggle mode">
               <input id="modeToggle" type="checkbox" />
               <span class="slider"></span>
             </label>
 
-            <div class="toggleLabel" id="lblTwos">Two’s complement</div>
+            <div class="toggleLabel" id="lblTwos">Two's complement</div>
           </div>
 
           <div class="hint" id="modeHint">
@@ -61,28 +59,17 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
             <div class="bitInputWrap">
               <div class="bitInputLabel">Bits</div>
-              <input
-                id="bitsInput"
-                class="bitInput"
-                type="number"
-                inputmode="numeric"
-                min="4"
-                max="64"
-                step="1"
-                value="8"
-                aria-label="Number of bits"
-              />
+              <input id="bitsInput" class="bitInput" type="number" inputmode="numeric" min="4" max="64" step="1" value="8" />
             </div>
 
             <button class="miniBtn" id="btnBitsUp" type="button" aria-label="Increase bits">+</button>
           </div>
 
-          <div class="hint">Minimum 4 bits, maximum 64 bits. Display wraps every 8 bits.</div>
+          <div class="hint">Minimum 4 bits, maximum 64 bits.</div>
         </div>
       </aside>
-    </section>
-  </main>
+    </div>
+  </section>
 
-  <!-- Page-specific JS -->
   <script type="module" src="/scripts/binary.js"></script>
 </BaseLayout>

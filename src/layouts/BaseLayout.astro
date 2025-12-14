@@ -1,9 +1,10 @@
 ---
-import SiteHeader from "../components/SiteHeader.astro";
-import SiteFooter from "../components/SiteFooter.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
 
 const { title = "Computing:Box" } = Astro.props;
 ---
+
 <!doctype html>
 <html lang="en">
   <head>
@@ -11,16 +12,18 @@ const { title = "Computing:Box" } = Astro.props;
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>{title}</title>
 
-    <!-- Global site styles -->
-    <link rel="stylesheet" href="/styles/global.css" />
-  </head>
-  <body>
-    <SiteHeader />
+    <!-- Global site styling -->
+    <link rel="stylesheet" href="/styles/site.css" />
 
-    <main class="site-main">
+    <!-- Page specific styles can be added by each page -->
+    <slot name="head" />
+  </head>
+
+  <body>
+    <Header />
+    <main class="page">
       <slot />
     </main>
-
-    <SiteFooter />
+    <Footer />
   </body>
 </html>
