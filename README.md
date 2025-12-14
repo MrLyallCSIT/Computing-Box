@@ -2,7 +2,7 @@
 Formerly CS:Box - An evolution of Bit:Box to incorporate different elements of the UK Computing Curriculum
 Available at [www.computingbox.co.uk](https://www.computingbox.co.uk)
 
-<img src="/assets/img/ComputingBox-Logo.png" width="250px" height="250px">
+![Computing:Box Logo](/assets/img/ComputingBox-Logo.png "Computing:Box Logo")
 
 ## Upcoming Features
 ### Original Bit:Box Features (October 2024)
