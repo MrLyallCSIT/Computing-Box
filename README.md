@@ -45,12 +45,10 @@ All commands are run from the root of the project, from a terminal:
 
 Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
 
-# This project has evolved to become Computing:Box Available at [www.computingbox.co.uk](https://www.computingbox.co.uk) and [www.computingbox.co.uk](https://www.computingbox.co.uk)
+# Computing:Box
+An evolution of Bit:Box & CS:Box to incorporate different elements of the UK Computing Curriculum
 
-# CS:Box
-An evolution of Bit:Box to incorporate different elements of the UK Computing Curriculum
-
-![CS:Box Logo](/assets/img/CSBox-Logo.png "CS:Box Logo")
+![Computing:Box Logo](/assets/img/ComputingBox-Logo.png "Computing:Box Logo")
 
 ## Upcoming Features
 ### Original Bit:Box Features (October 2024)
