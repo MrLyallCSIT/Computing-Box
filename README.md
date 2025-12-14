@@ -1,8 +1,9 @@
-# Computing:Box
-Formerly CS:Box - An evolution of Bit:Box to incorporate different elements of the UK Computing Curriculum
-Available at [www.computingbox.co.uk](https://www.computingbox.co.uk)
+# This project has evolved to become Computing:Box Available at [www.computingbox.co.uk](https://www.computingbox.co.uk) and [www.computingbox.co.uk](https://www.computingbox.co.uk)
 
-![Computing:Box Logo](/assets/img/ComputingBox-Logo.png "Computing:Box Logo")
+# CS:Box
+An evolution of Bit:Box to incorporate different elements of the UK Computing Curriculum
+
+![CS:Box Logo](/assets/img/CSBox-Logo.png "CS:Box Logo")
 
 ## Upcoming Features
 ### Original Bit:Box Features (October 2024)
