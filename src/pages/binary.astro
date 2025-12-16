@@ -1,5 +1,13 @@
 ---
 import "../styles/binary.css";
+
+// ✅ Vite-bundled JS URL (works in dev + build + preview)
+import binaryScriptUrl from "../scripts/binary.js?url";
+
+// If you already have a site-wide Layout that adds header/footer,
+// wrap the page with it here.
+// Example (uncomment and adjust if you have it):
+// import Layout from "../layouts/Layout.astro";
 ---
 
 <!doctype html>
@@ -11,26 +19,31 @@ import "../styles/binary.css";
   </head>
 
   <body>
-    <!-- Your site header/footer should already be handled by your layout.
-         If you *don’t* have a layout, tell me and I’ll wire it in properly. -->
+    <!-- If using Layout, do:
+    <Layout title="Binary | Computing:Box">
+      ...everything inside <main>...
+    </Layout>
+    -->
 
     <main class="wrap">
       <section class="topGrid">
-        <!-- LEFT: readout + buttons -->
+        <!-- LEFT -->
         <div>
           <div class="readout">
             <div class="label">Denary</div>
             <div id="denaryNumber" class="num denaryValue">0</div>
 
             <div class="label">Binary</div>
-            <div id="binaryNumber" class="num binaryValue">0000 0000</div>
+            <div id="binaryNumber" class="num binaryValue">0</div>
 
+            <!-- Custom buttons on one line -->
             <div class="controlsStack">
               <div class="controlsRow">
                 <button class="btn btnAccent" id="btnCustomBinary" type="button">Custom Binary</button>
                 <button class="btn btnAccent" id="btnCustomDenary" type="button">Custom Denary</button>
               </div>
 
+              <!-- Shift buttons on another line -->
               <div class="controlsRow">
                 <button class="btn" id="btnShiftLeft" type="button">Left Shift</button>
                 <button class="btn" id="btnShiftRight" type="button">Right Shift</button>
@@ -40,13 +53,12 @@ import "../styles/binary.css";
 
           <div class="divider"></div>
 
-          <!-- Bits render here -->
           <section class="bitsWrap" aria-label="Bit switches">
             <div class="bitsGrid" id="bitsGrid"></div>
           </section>
         </div>
 
-        <!-- RIGHT: mode + tools + bit width -->
+        <!-- RIGHT -->
         <aside class="panelCol">
           <div class="card">
             <div class="cardTitle">Mode</div>
@@ -67,16 +79,15 @@ import "../styles/binary.css";
             </div>
           </div>
 
+          <!-- Tools: arrows on one row, Reset+Random on one row -->
           <div class="card">
             <div class="cardTitle">Tools</div>
 
-            <!-- Spinner row: HORIZONTAL buttons, arrows only -->
             <div class="toolRow">
               <button class="toolBtn toolSpin" id="btnDec" type="button" aria-label="Decrement">▼</button>
               <button class="toolBtn toolSpin" id="btnInc" type="button" aria-label="Increment">▲</button>
             </div>
 
-            <!-- Reset + Random on SAME LINE -->
             <div class="toolRow2">
               <button class="toolBtn" id="btnClear" type="button">Reset</button>
               <button class="toolBtn" id="btnRandom" type="button">Random</button>
@@ -115,7 +126,7 @@ import "../styles/binary.css";
       </section>
     </main>
 
-    <!-- IMPORTANT: This is the correct Astro/Vite way to reference a JS file in src/ -->
-    <script type="module" src={new URL("../scripts/binary.js", import.meta.url)}></script>
+    <!-- ✅ correct bundled JS reference -->
+    <script type="module" src={binaryScriptUrl}></script>
   </body>
 </html>

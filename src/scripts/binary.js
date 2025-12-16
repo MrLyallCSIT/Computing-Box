@@ -1,353 +1,508 @@
 // src/scripts/binary.js
+// Computing:Box — Binary page logic (Unsigned + Two's Complement)
+// NOTE: This file is written to match the IDs/classes in your current binary.astro HTML.
 
-document.addEventListener("DOMContentLoaded", () => {
+(() => {
+  /* -----------------------------
+     DOM
+  ----------------------------- */
   const bitsGrid = document.getElementById("bitsGrid");
   const denaryEl = document.getElementById("denaryNumber");
   const binaryEl = document.getElementById("binaryNumber");
+  const bitsInput = document.getElementById("bitsInput");
 
   const modeToggle = document.getElementById("modeToggle");
   const modeHint = document.getElementById("modeHint");
-
-  const bitsInput = document.getElementById("bitsInput");
-  const btnBitsUp = document.getElementById("btnBitsUp");
-  const btnBitsDown = document.getElementById("btnBitsDown");
+  const lblUnsigned = document.getElementById("lblUnsigned");
+  const lblTwos = document.getElementById("lblTwos");
 
   const btnCustomBinary = document.getElementById("btnCustomBinary");
   const btnCustomDenary = document.getElementById("btnCustomDenary");
   const btnShiftLeft = document.getElementById("btnShiftLeft");
   const btnShiftRight = document.getElementById("btnShiftRight");
 
+  const btnDec = document.getElementById("btnDec");
+  const btnInc = document.getElementById("btnInc");
   const btnClear = document.getElementById("btnClear");
   const btnRandom = document.getElementById("btnRandom");
-  const btnInc = document.getElementById("btnInc");
-  const btnDec = document.getElementById("btnDec");
 
-  let bitCount = clampInt(Number(bitsInput.value || 8), 1, 64);
-  let isTwos = false;
+  const btnBitsUp = document.getElementById("btnBitsUp");
+  const btnBitsDown = document.getElementById("btnBitsDown");
 
-  // Bits stored MSB -> LSB (index 0 is MSB)
+  /* -----------------------------
+     STATE
+  ----------------------------- */
+  let bitCount = clampInt(Number(bitsInput?.value ?? 8), 1, 64);
+
+  // bits[i] is bit value 2^i (LSB at i=0)
   let bits = new Array(bitCount).fill(false);
 
-  // Random timer
+  // Random run timer (brief)
   let randomTimer = null;
 
+  /* -----------------------------
+     HELPERS
+  ----------------------------- */
   function clampInt(n, min, max) {
-    n = Number(n);
     if (!Number.isFinite(n)) return min;
-    n = Math.floor(n);
-    return Math.max(min, Math.min(max, n));
+    return Math.max(min, Math.min(max, Math.trunc(n)));
   }
 
-  function pow2(exp) {
-    // exp can be up to 63; JS Number is fine for display and basic use here
-    return 2 ** exp;
+  function isTwosMode() {
+    return !!modeToggle?.checked;
   }
 
-  function buildBits(count) {
-    bitsGrid.innerHTML = "";
-    bits = new Array(count).fill(false);
-    bitCount = count;
+  function pow2Big(n) {
+    return 1n << BigInt(n);
+  }
 
-    // Grid wrap at 8 bits per row; also center for small counts
-    if (count < 8) {
-      bitsGrid.classList.add("bitsFew");
-      bitsGrid.style.setProperty("--cols", String(count));
+  function unsignedMaxExclusive(nBits) {
+    return pow2Big(nBits); // 2^n
+  }
+
+  function unsignedMaxValue(nBits) {
+    return pow2Big(nBits) - 1n;
+  }
+
+  function twosMin(nBits) {
+    return -pow2Big(nBits - 1);
+  }
+
+  function twosMax(nBits) {
+    return pow2Big(nBits - 1) - 1n;
+  }
+
+  function bitsToUnsignedBigInt() {
+    let v = 0n;
+    for (let i = 0; i < bitCount; i++) {
+      if (bits[i]) v += pow2Big(i);
+    }
+    return v;
+  }
+
+  function unsignedBigIntToBits(vUnsigned) {
+    const v = ((vUnsigned % unsignedMaxExclusive(bitCount)) + unsignedMaxExclusive(bitCount)) % unsignedMaxExclusive(bitCount);
+    for (let i = 0; i < bitCount; i++) {
+      bits[i] = ((v >> BigInt(i)) & 1n) === 1n;
+    }
+  }
+
+  function bitsToSignedBigIntTwos() {
+    const u = bitsToUnsignedBigInt();
+    const signBit = bits[bitCount - 1] === true;
+    if (!signBit) return u;
+
+    // negative: u - 2^n
+    return u - pow2Big(bitCount);
+  }
+
+  function signedBigIntToBitsTwos(vSigned) {
+    // wrap into range [-2^(n-1), 2^(n-1)-1]
+    const min = twosMin(bitCount);
+    const max = twosMax(bitCount);
+    const span = pow2Big(bitCount); // 2^n
+
+    let v = vSigned;
+
+    // wrap using modular arithmetic on signed domain
+    // Convert to unsigned representative: v mod 2^n
+    v = ((v % span) + span) % span;
+
+    unsignedBigIntToBits(v);
+    // labels/denary will show signed later
+    // (No further action needed here)
+  }
+
+  function formatBinaryGrouped() {
+    // MSB..LSB with a space every 4 bits (matches your screenshot 0000 0000)
+    let s = "";
+    for (let i = bitCount - 1; i >= 0; i--) {
+      s += bits[i] ? "1" : "0";
+      const posFromRight = (bitCount - i);
+      if (i !== 0 && posFromRight % 4 === 0) s += " ";
+    }
+    return s;
+  }
+
+  function updateModeHint() {
+    if (!modeHint) return;
+    if (isTwosMode()) {
+      modeHint.textContent = "Tip: In two’s complement, the left-most bit (MSB) represents a negative value.";
     } else {
-      bitsGrid.classList.remove("bitsFew");
+      modeHint.textContent = "Tip: In unsigned binary, all bits represent positive values.";
+    }
+  }
+
+  /* -----------------------------
+     BUILD UI (BITS)
+  ----------------------------- */
+  function buildBits(count) {
+    bitCount = clampInt(count, 1, 64);
+    if (bitsInput) bitsInput.value = String(bitCount);
+
+    // reset bits array size, preserve existing LSBs where possible
+    const oldBits = bits.slice();
+    bits = new Array(bitCount).fill(false);
+    for (let i = 0; i < Math.min(oldBits.length, bitCount); i++) bits[i] = oldBits[i];
+
+    bitsGrid.innerHTML = "";
+
+    // If less than 8 bits, centre nicely using your CSS helper
+    bitsGrid.classList.toggle("bitsFew", bitCount < 8);
+    if (bitCount < 8) {
+      bitsGrid.style.setProperty("--cols", String(bitCount));
+    } else {
       bitsGrid.style.removeProperty("--cols");
     }
 
-    for (let i = 0; i < count; i++) {
-      const isMSB = i === 0;
-      const valueUnsigned = pow2(count - 1 - i); // MSB is 2^(n-1)
+    // Render MSB..LSB left-to-right
+    for (let i = bitCount - 1; i >= 0; i--) {
+      const bitEl = document.createElement("div");
+      bitEl.className = "bit";
 
-      const bit = document.createElement("div");
-      bit.className = "bit";
-
-      bit.innerHTML = `
-        <div class="bulb" id="bulb-${i}" aria-hidden="true"></div>
-        <div class="bitVal" id="label-${i}">${valueUnsigned}</div>
+      // IMPORTANT: We render the bulb as an emoji with NO circle/ring.
+      // We do not rely on the .bulb CSS ring/background at all.
+      bitEl.innerHTML = `
+        <div class="bulb" id="bulb-${i}" aria-hidden="true">💡</div>
+        <div class="bitVal" id="bitLabel-${i}"></div>
         <label class="switch" aria-label="Toggle bit ${i}">
           <input type="checkbox" data-index="${i}">
           <span class="slider"></span>
         </label>
       `;
 
-      bitsGrid.appendChild(bit);
+      bitsGrid.appendChild(bitEl);
     }
 
-    hookSwitches();
-    updateModeLabels();
-    updateReadout();
-  }
-
-  function hookSwitches() {
-    bitsGrid.querySelectorAll('input[type="checkbox"][data-index]').forEach((input) => {
+    // Hook switches
+    bitsGrid.querySelectorAll('input[type="checkbox"]').forEach((input) => {
       input.addEventListener("change", () => {
         const i = Number(input.dataset.index);
         bits[i] = input.checked;
-        updateReadout();
+        updateUI();
       });
     });
-  }
 
-  function updateModeLabels() {
-    isTwos = Boolean(modeToggle.checked);
-
-    modeHint.textContent = isTwos
-      ? "Tip: In two’s complement, the left-most bit (MSB) represents a negative value."
-      : "Tip: In unsigned binary, all bits represent positive values.";
-
-    // Update the labels so the MSB shows negative weight in two's complement
-    for (let i = 0; i < bitCount; i++) {
-      const label = document.getElementById(`label-${i}`);
-      if (!label) continue;
-
-      const unsignedWeight = pow2(bitCount - 1 - i);
-
-      if (isTwos && i === 0) {
-        // MSB weight is negative
-        label.textContent = `-${unsignedWeight}`;
-      } else {
-        label.textContent = `${unsignedWeight}`;
-      }
-    }
-  }
-
-  function formatBinaryString(raw) {
-    // group every 4 for readability (keeps your "0000 0000" look)
-    return raw.replace(/(.{4})/g, "$1 ").trim();
-  }
-
-  function computeUnsignedValue() {
-    let value = 0;
-    for (let i = 0; i < bitCount; i++) {
-      if (!bits[i]) continue;
-      value += pow2(bitCount - 1 - i);
-    }
-    return value;
-  }
-
-  function computeTwosValue() {
-    // If MSB is 0 -> same as unsigned
-    const msb = bits[0] ? 1 : 0;
-    let value = computeUnsignedValue();
-    if (msb === 1) {
-      // subtract 2^n to get signed negative value
-      value -= pow2(bitCount);
-    }
-    return value;
-  }
-
-  function updateReadout() {
-    // Binary string (MSB->LSB)
-    const rawBinary = bits.map((b) => (b ? "1" : "0")).join("");
-    binaryEl.textContent = formatBinaryString(rawBinary);
-
-    // Denary value based on mode
-    const denary = isTwos ? computeTwosValue() : computeUnsignedValue();
-    denaryEl.textContent = String(denary);
-
-    // Bulbs MUST update in BOTH modes (this was your reported bug)
+    // Force the bulb to be "just the emoji" (removes the circle even if CSS adds it)
     for (let i = 0; i < bitCount; i++) {
       const bulb = document.getElementById(`bulb-${i}`);
       if (!bulb) continue;
-      bulb.classList.toggle("on", bits[i]);
+
+      // Strip the ring/circle coming from CSS
+      bulb.style.width = "auto";
+      bulb.style.height = "auto";
+      bulb.style.border = "none";
+      bulb.style.background = "transparent";
+      bulb.style.borderRadius = "0";
+      bulb.style.boxShadow = "none";
+      bulb.style.opacity = "0.45";
+      bulb.style.fontSize = "26px";
+      bulb.style.lineHeight = "1";
+      bulb.style.display = "flex";
+      bulb.style.alignItems = "center";
+      bulb.style.justifyContent = "center";
+      bulb.style.filter = "grayscale(1)";
+      bulb.textContent = "💡";
+    }
+
+    updateUI();
+  }
+
+  /* -----------------------------
+     UI UPDATE (READOUT + LABELS + BULBS + SWITCHES)
+  ----------------------------- */
+  function updateBitLabels() {
+    // Show weights under each bit.
+    // Unsigned: 2^i
+    // Two's: MSB is -2^(n-1), others are 2^i
+    for (let i = 0; i < bitCount; i++) {
+      const label = document.getElementById(`bitLabel-${i}`);
+      if (!label) continue;
+
+      if (isTwosMode() && i === bitCount - 1) {
+        label.textContent = `-${pow2Big(bitCount - 1).toString()}`;
+      } else {
+        label.textContent = pow2Big(i).toString();
+      }
     }
   }
 
-  function syncInputs() {
-    bitsGrid.querySelectorAll('input[type="checkbox"][data-index]').forEach((input) => {
+  function syncSwitchesToBits() {
+    bitsGrid.querySelectorAll('input[type="checkbox"]').forEach((input) => {
       const i = Number(input.dataset.index);
-      input.checked = Boolean(bits[i]);
+      input.checked = !!bits[i];
     });
+  }
+
+  function updateBulbs() {
+    // Bulbs should ALWAYS reflect bits, regardless of mode.
+    for (let i = 0; i < bitCount; i++) {
+      const bulb = document.getElementById(`bulb-${i}`);
+      if (!bulb) continue;
+
+      const on = bits[i] === true;
+
+      // Make it look "lit" when on (no circle, just glow)
+      if (on) {
+        bulb.style.opacity = "1";
+        bulb.style.filter = "grayscale(0)";
+        bulb.style.textShadow = "0 0 14px rgba(255,216,107,.75), 0 0 26px rgba(255,216,107,.45)";
+      } else {
+        bulb.style.opacity = "0.45";
+        bulb.style.filter = "grayscale(1)";
+        bulb.style.textShadow = "none";
+      }
+    }
+  }
+
+  function updateReadout() {
+    if (!denaryEl || !binaryEl) return;
+
+    if (isTwosMode()) {
+      const signed = bitsToSignedBigIntTwos();
+      denaryEl.textContent = signed.toString();
+    } else {
+      const unsigned = bitsToUnsignedBigInt();
+      denaryEl.textContent = unsigned.toString();
+    }
+
+    binaryEl.textContent = formatBinaryGrouped();
+  }
+
+  function updateUI() {
+    updateModeHint();
+    updateBitLabels();
+    syncSwitchesToBits();
+    updateBulbs();
     updateReadout();
   }
 
-  function setAllBits(off = true) {
-    bits = bits.map(() => !off);
-    syncInputs();
+  /* -----------------------------
+     SET FROM BINARY STRING
+  ----------------------------- */
+  function setFromBinaryString(binStr) {
+    const clean = String(binStr ?? "").replace(/\s+/g, "");
+    if (!/^[01]+$/.test(clean)) return false;
+
+    // Use rightmost bitCount bits; left pad with 0
+    const padded = clean.slice(-bitCount).padStart(bitCount, "0");
+
+    for (let i = 0; i < bitCount; i++) {
+      // padded is MSB..LSB, bits[] is LSB..MSB
+      const charFromRight = padded[padded.length - 1 - i];
+      bits[i] = charFromRight === "1";
+    }
+
+    updateUI();
+    return true;
   }
 
+  /* -----------------------------
+     SET FROM DENARY INPUT
+  ----------------------------- */
+  function setFromDenaryInput(vStr) {
+    const raw = String(vStr ?? "").trim();
+    if (!raw) return false;
+
+    // BigInt parse (supports negatives)
+    let v;
+    try {
+      // Allow normal integers only
+      if (!/^-?\d+$/.test(raw)) return false;
+      v = BigInt(raw);
+    } catch {
+      return false;
+    }
+
+    if (isTwosMode()) {
+      // Clamp to representable range
+      const min = twosMin(bitCount);
+      const max = twosMax(bitCount);
+      if (v < min || v > max) return false;
+
+      signedBigIntToBitsTwos(v);
+    } else {
+      // Unsigned only
+      if (v < 0n) return false;
+      if (v > unsignedMaxValue(bitCount)) return false;
+
+      unsignedBigIntToBits(v);
+    }
+
+    updateUI();
+    return true;
+  }
+
+  /* -----------------------------
+     SHIFTS
+  ----------------------------- */
   function shiftLeft() {
-    // left shift: drop MSB, append 0 at LSB
-    bits.shift();
-    bits.push(false);
-    syncInputs();
+    // logical left shift: bits move to higher index; LSB becomes 0
+    for (let i = bitCount - 1; i >= 1; i--) {
+      bits[i] = bits[i - 1];
+    }
+    bits[0] = false;
+    updateUI();
   }
 
   function shiftRight() {
-    // right shift: drop LSB, prepend 0 at MSB
-    bits.pop();
-    bits.unshift(false);
-    syncInputs();
-  }
-
-  function setFromBinary(input) {
-    const clean = String(input).replace(/\s+/g, "");
-    if (!/^[01]+$/.test(clean)) return false;
-
-    const padded = clean.slice(-bitCount).padStart(bitCount, "0");
-    bits = [...padded].map((ch) => ch === "1");
-    syncInputs();
-    return true;
-  }
-
-  function setFromDenary(input) {
-    let n = Number(input);
-    if (!Number.isInteger(n)) return false;
-
-    // For unsigned mode: allow 0..(2^n - 1)
-    // For two's mode: allow -(2^(n-1))..(2^(n-1)-1)
-    const maxUnsigned = pow2(bitCount) - 1;
-    const minTwos = -pow2(bitCount - 1);
-    const maxTwos = pow2(bitCount - 1) - 1;
-
-    if (!isTwos) {
-      if (n < 0 || n > maxUnsigned) return false;
-      // build bits from unsigned n
-      bits = new Array(bitCount).fill(false);
-      for (let i = 0; i < bitCount; i++) {
-        const weight = pow2(bitCount - 1 - i);
-        if (n >= weight) {
-          bits[i] = true;
-          n -= weight;
-        }
-      }
-      syncInputs();
-      return true;
+    // logical right shift: bits move to lower index; MSB becomes 0
+    for (let i = 0; i < bitCount - 1; i++) {
+      bits[i] = bits[i + 1];
     }
+    bits[bitCount - 1] = false;
+    updateUI();
+  }
 
-    // Two's complement: convert signed integer to n-bit representation
-    if (n < minTwos || n > maxTwos) return false;
-
-    let u = n;
-    if (u < 0) u = pow2(bitCount) + u; // wrap into unsigned range
-    const bin = u.toString(2).padStart(bitCount, "0");
-    bits = [...bin].map((ch) => ch === "1");
-    syncInputs();
-    return true;
+  /* -----------------------------
+     CLEAR / INC / DEC
+  ----------------------------- */
+  function clearAll() {
+    bits.fill(false);
+    updateUI();
   }
 
   function increment() {
-    // increment the underlying value in current mode, wrap appropriately
-    if (!isTwos) {
-      const max = pow2(bitCount) - 1;
-      let v = computeUnsignedValue();
-      v = (v + 1) % (max + 1);
-      setFromDenary(v);
-      return;
+    if (isTwosMode()) {
+      const min = twosMin(bitCount);
+      const max = twosMax(bitCount);
+      let v = bitsToSignedBigIntTwos() + 1n;
+      if (v > max) v = min; // wrap
+      signedBigIntToBitsTwos(v);
+    } else {
+      const span = unsignedMaxExclusive(bitCount);
+      const v = (bitsToUnsignedBigInt() + 1n) % span;
+      unsignedBigIntToBits(v);
     }
-
-    const min = -pow2(bitCount - 1);
-    const max = pow2(bitCount - 1) - 1;
-    let v = computeTwosValue();
-    v = v + 1;
-    if (v > max) v = min; // wrap
-    setFromDenary(v);
+    updateUI();
   }
 
   function decrement() {
-    if (!isTwos) {
-      const max = pow2(bitCount) - 1;
-      let v = computeUnsignedValue();
-      v = v - 1;
-      if (v < 0) v = max;
-      setFromDenary(v);
-      return;
+    if (isTwosMode()) {
+      const min = twosMin(bitCount);
+      const max = twosMax(bitCount);
+      let v = bitsToSignedBigIntTwos() - 1n;
+      if (v < min) v = max; // wrap
+      signedBigIntToBitsTwos(v);
+    } else {
+      const span = unsignedMaxExclusive(bitCount);
+      const v = (bitsToUnsignedBigInt() - 1n + span) % span;
+      unsignedBigIntToBits(v);
     }
-
-    const min = -pow2(bitCount - 1);
-    const max = pow2(bitCount - 1) - 1;
-    let v = computeTwosValue();
-    v = v - 1;
-    if (v < min) v = max;
-    setFromDenary(v);
+    updateUI();
   }
 
-  function startAutoRandom() {
-    stopAutoRandom();
+  /* -----------------------------
+     RANDOM (FIXED: NO BigInt->Number Math.min)
+  ----------------------------- */
+  function cryptoRandomBigInt(maxExclusive) {
+    // returns 0 <= x < maxExclusive
+    if (maxExclusive <= 0n) return 0n;
 
-    const durationMs = 1200; // runs briefly then stops
-    const tickMs = 90;
+    const bitLen = maxExclusive.toString(2).length;
+    const byteLen = Math.ceil(bitLen / 8);
+
+    // Rejection sampling
+    while (true) {
+      const bytes = new Uint8Array(byteLen);
+      crypto.getRandomValues(bytes);
+
+      let x = 0n;
+      for (const b of bytes) {
+        x = (x << 8n) | BigInt(b);
+      }
+
+      // mask down to bitLen to reduce rejections slightly
+      const extraBits = BigInt(byteLen * 8 - bitLen);
+      if (extraBits > 0n) x = x >> extraBits;
+
+      if (x < maxExclusive) return x;
+    }
+  }
+
+  function setRandomOnce() {
+    if (isTwosMode()) {
+      const span = unsignedMaxExclusive(bitCount); // 2^n
+      const u = cryptoRandomBigInt(span); // 0..2^n-1
+      unsignedBigIntToBits(u);
+    } else {
+      const span = unsignedMaxExclusive(bitCount);
+      const u = cryptoRandomBigInt(span);
+      unsignedBigIntToBits(u);
+    }
+    updateUI();
+  }
+
+  function runRandomBriefly() {
+    // stop any existing run
+    if (randomTimer) {
+      clearInterval(randomTimer);
+      randomTimer = null;
+    }
 
     const start = Date.now();
-    randomTimer = window.setInterval(() => {
-      // pick a random representable number depending on mode
-      let target;
-      if (!isTwos) {
-        target = Math.floor(Math.random() * (pow2(bitCount)));
-      } else {
-        const min = -pow2(bitCount - 1);
-        const max = pow2(bitCount - 1) - 1;
-        target = min + Math.floor(Math.random() * (max - min + 1));
-      }
-      setFromDenary(target);
+    const durationMs = 900; // brief run then stop
+    const tickMs = 80;
 
-      if (Date.now() - start >= durationMs) stopAutoRandom();
+    randomTimer = setInterval(() => {
+      setRandomOnce();
+      if (Date.now() - start >= durationMs) {
+        clearInterval(randomTimer);
+        randomTimer = null;
+      }
     }, tickMs);
   }
 
-  function stopAutoRandom() {
-    if (randomTimer !== null) {
-      window.clearInterval(randomTimer);
-      randomTimer = null;
-    }
+  /* -----------------------------
+     BIT WIDTH CONTROLS
+  ----------------------------- */
+  function setBitWidth(n) {
+    const v = clampInt(n, 1, 64);
+    buildBits(v);
   }
 
-  // MODE toggle
-  modeToggle.addEventListener("change", () => {
-    updateModeLabels();
-    updateReadout();
+  /* -----------------------------
+     EVENTS
+  ----------------------------- */
+  modeToggle?.addEventListener("change", () => {
+    updateUI();
   });
 
-  // Bit width
-  btnBitsUp.addEventListener("click", () => {
-    const next = clampInt(bitCount + 1, 1, 64);
-    bitsInput.value = String(next);
-    buildBits(next);
+  btnCustomBinary?.addEventListener("click", () => {
+    const v = prompt(`Enter binary (spaces allowed). Current width: ${bitCount} bits`);
+    if (v === null) return;
+    if (!setFromBinaryString(v)) alert("Invalid binary");
   });
 
-  btnBitsDown.addEventListener("click", () => {
-    const next = clampInt(bitCount - 1, 1, 64);
-    bitsInput.value = String(next);
-    buildBits(next);
+  btnCustomDenary?.addEventListener("click", () => {
+    const v = prompt(
+      isTwosMode()
+        ? `Enter denary (${twosMin(bitCount).toString()} to ${twosMax(bitCount).toString()}):`
+        : `Enter denary (0 to ${unsignedMaxValue(bitCount).toString()}):`
+    );
+    if (v === null) return;
+    if (!setFromDenaryInput(v)) alert("Invalid denary for current mode/bit width");
   });
 
-  bitsInput.addEventListener("change", () => {
-    const next = clampInt(bitsInput.value, 1, 64);
-    bitsInput.value = String(next);
-    buildBits(next);
+  btnShiftLeft?.addEventListener("click", shiftLeft);
+  btnShiftRight?.addEventListener("click", shiftRight);
+
+  btnInc?.addEventListener("click", increment);
+  btnDec?.addEventListener("click", decrement);
+
+  btnClear?.addEventListener("click", clearAll);
+  btnRandom?.addEventListener("click", runRandomBriefly);
+
+  btnBitsUp?.addEventListener("click", () => setBitWidth(bitCount + 1));
+  btnBitsDown?.addEventListener("click", () => setBitWidth(bitCount - 1));
+
+  bitsInput?.addEventListener("change", () => {
+    setBitWidth(Number(bitsInput.value));
   });
 
-  // Buttons
-  btnShiftLeft.addEventListener("click", shiftLeft);
-  btnShiftRight.addEventListener("click", shiftRight);
-
-  btnCustomBinary.addEventListener("click", () => {
-    const val = prompt(`Enter a ${bitCount}-bit binary number:`);
-    if (val === null) return;
-    if (!setFromBinary(val)) alert("Invalid binary input (use only 0 and 1).");
-  });
-
-  btnCustomDenary.addEventListener("click", () => {
-    const modeRange = isTwos
-      ? `(${ -pow2(bitCount - 1) } to ${ pow2(bitCount - 1) - 1 })`
-      : `(0 to ${ pow2(bitCount) - 1 })`;
-
-    const val = prompt(`Enter a denary number ${modeRange}:`);
-    if (val === null) return;
-    if (!setFromDenary(val)) alert("Invalid denary input for the current mode/bit width.");
-  });
-
-  btnClear.addEventListener("click", () => setAllBits(true));
-  btnRandom.addEventListener("click", startAutoRandom);
-
-  btnInc.addEventListener("click", increment);
-  btnDec.addEventListener("click", decrement);
-
-  // INIT
-  modeToggle.checked = false;
-  updateModeLabels();
+  /* -----------------------------
+     INIT
+  ----------------------------- */
+  updateModeHint();
   buildBits(bitCount);
-});
+})();
