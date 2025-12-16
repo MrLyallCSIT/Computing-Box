@@ -464,6 +464,17 @@
   /* -----------------------------
      EVENTS
   ----------------------------- */
+
+    // Collapsible right panel
+  const sidePanel = document.getElementById("sidePanel");
+  const btnPanelToggle = document.getElementById("btnPanelToggle");
+
+  btnPanelToggle?.addEventListener("click", () => {
+    sidePanel?.classList.toggle("isCollapsed");
+    // flip the chevron
+    btnPanelToggle.textContent = sidePanel?.classList.contains("isCollapsed") ? "❮" : "❯";
+  });
+
   modeToggle?.addEventListener("change", () => {
     updateUI();
   });
@@ -506,3 +517,4 @@
   updateModeHint();
   buildBits(bitCount);
 })();
+

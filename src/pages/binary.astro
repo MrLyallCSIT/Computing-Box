@@ -59,38 +59,35 @@ import binaryScriptUrl from "../scripts/binary.js?url";
         </div>
 
         <!-- RIGHT -->
-        <aside class="panelCol">
-          <div class="card">
-            <div class="cardTitle">Mode</div>
+      <aside class="panelCol" id="sidePanel">
+        <button class="panelToggle" id="btnPanelToggle" type="button" aria-label="Toggle side panel">❯</button>
 
-            <div class="toggleRow">
-              <div class="toggleLabel" id="lblUnsigned">Unsigned</div>
-
-              <label class="switch" aria-label="Toggle mode">
-                <input id="modeToggle" type="checkbox" />
-                <span class="slider"></span>
-              </label>
-
-              <div class="toggleLabel" id="lblTwos">Two&rsquo;s complement</div>
-            </div>
-
-            <div class="hint" id="modeHint">
-              Tip: In unsigned binary, all bits represent positive values.
-            </div>
+        <div class="card">
+          <div class="cardTitle">Mode</div>
+          <div class="toggleRow">
+            <div class="toggleLabel" id="lblUnsigned">Unsigned</div>
+            <label class="switch" aria-label="Toggle mode">
+              <input id="modeToggle" type="checkbox" />
+              <span class="slider"></span>
+            </label>
+            <div class="toggleLabel" id="lblTwos">Two&rsquo;s complement</div>
           </div>
+          <div class="hint" id="modeHint">Tip: In unsigned binary, all bits represent positive values.</div>
+        </div>
 
-          <!-- Tools: arrows on one row, Reset+Random on one row -->
+        <!-- Tools + Bit Width on the same row -->
+        <div class="sideRow">
           <div class="card">
             <div class="cardTitle">Tools</div>
 
             <div class="toolRow">
-              <button class="toolBtn toolSpin" id="btnDec" type="button" aria-label="Decrement">▼</button>
-              <button class="toolBtn toolSpin" id="btnInc" type="button" aria-label="Increment">▲</button>
+              <button class="toolBtn toolQuarter toolDown" id="btnDec" type="button" aria-label="Decrement">▼</button>
+              <button class="toolBtn toolQuarter toolUp" id="btnInc" type="button" aria-label="Increment">▲</button>
             </div>
 
-            <div class="toolRow2">
-              <button class="toolBtn" id="btnClear" type="button">Reset</button>
-              <button class="toolBtn" id="btnRandom" type="button">Random</button>
+            <div class="toolRow2" style="margin-top:10px;">
+              <button class="toolBtn toolHalf" id="btnClear" type="button">Reset</button>
+              <button class="toolBtn toolHalf" id="btnRandom" type="button">Random</button>
             </div>
 
             <div class="hint">Random runs briefly then stops automatically.</div>
@@ -98,31 +95,22 @@ import binaryScriptUrl from "../scripts/binary.js?url";
 
           <div class="card">
             <div class="cardTitle">Bit width</div>
-
             <div class="bitWidthRow">
               <button class="miniBtn" id="btnBitsDown" type="button" aria-label="Decrease bits">−</button>
 
               <div class="bitInputWrap">
                 <div class="bitInputLabel">Bits</div>
-                <input
-                  id="bitsInput"
-                  class="bitInput"
-                  type="number"
-                  inputmode="numeric"
-                  min="1"
-                  max="64"
-                  step="1"
-                  value="8"
-                  aria-label="Number of bits"
-                />
+                <input id="bitsInput" class="bitInput" type="number" inputmode="numeric"
+                      min="1" max="64" step="1" value="8" aria-label="Number of bits" />
               </div>
 
               <button class="miniBtn" id="btnBitsUp" type="button" aria-label="Increase bits">+</button>
             </div>
-
             <div class="hint">Minimum 1 bit, maximum 64 bits.</div>
           </div>
-        </aside>
+        </div>
+      </aside>
+
       </section>
     </main>
 
