@@ -1,5 +1,7 @@
 ---
-const { title = "Computing:Box" } = Astro.props;
+const {
+  title = "Computing:Box",
+} = Astro.props;
 ---
 
 <!doctype html>
@@ -8,34 +10,124 @@ const { title = "Computing:Box" } = Astro.props;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>{title}</title>
-    <link rel="stylesheet" href="/src/styles/site.css" />
+    <meta name="color-scheme" content="dark" />
   </head>
 
   <body>
-    <header class="site-header">
-      <div class="site-header__inner">
-        <div class="brand">Computing:Box</div>
+    <header class="siteHeader">
+      <div class="siteHeaderInner">
+        <a class="brand" href="/">
+          <!-- Put your logo file here -->
+          <img
+            class="brandLogo"
+            src="../images/computing-box-logo.svg"
+            alt="Computing:Box logo"
+            width="28"
+            height="28"
+          />
+          <span class="brandName">Computing:Box</span>
+        </a>
 
-        <nav class="nav">
-          <a class="nav__link" href="/binary">Binary</a>
-          <a class="nav__link" href="/hexadecimal">Hexadecimal</a>
-          <a class="nav__link" href="/hex-colours">Hex Colours</a>
-          <a class="nav__link" href="/logic-gates">Logic Gates</a>
-          <a class="nav__link" href="/about">About</a>
+        <nav class="siteNav" aria-label="Main navigation">
+          <a href="/about">About</a>
+          <a href="/binary">Binary</a>
+          <a href="/hexadecimal">Hexadecimal</a>
+          <a href="/hex-colours">Hex Colours</a>
+          <a href="/logic-gates">Logic Gates</a>
         </nav>
       </div>
     </header>
 
-    <main class="site-main">
-      <slot />
-    </main>
+    <slot />
 
-    <footer class="site-footer">
-      <div class="site-footer__inner">
-        <div>Computer Science Concept Simulators</div>
-        <div>© 2025 Computing:Box · Created with 💜 by Mr Lyall</div>
-        <div>Powered by ADCM Networks</div>
-      </div>
-    </footer>
+    <style>
+      :root{
+        /* 3× navbar height */
+        --nav-height: 96px;
+        --nav-pad-x: 22px;
+        --bg: #1f2027;
+        --text: #e8e8ee;
+        --muted: #a9acb8;
+        --line: rgba(255,255,255,.10);
+      }
+
+      body{
+        margin:0;
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      .siteHeader{
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        height: var(--nav-height);
+        display:flex;
+        align-items:center;
+        background: rgba(0,0,0,.15);
+        border-bottom: 1px solid var(--line);
+        backdrop-filter: blur(10px);
+      }
+
+      .siteHeaderInner{
+        width: 100%;
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 var(--nav-pad-x);
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap: 18px;
+      }
+
+      .brand{
+        display:flex;
+        align-items:center;
+        gap: 10px;
+        text-decoration:none;
+        color: var(--text);
+        font-weight: 800;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+      }
+
+      .brandLogo{
+        display:block;
+        width: 28px;
+        height: 28px;
+      }
+
+      .brandName{
+        font-size: 14px;
+        opacity: .95;
+      }
+
+      .siteNav{
+        display:flex;
+        gap: 18px;
+        align-items:center;
+      }
+
+      .siteNav a{
+        color: var(--muted);
+        text-decoration:none;
+        font-weight: 700;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        font-size: 11px;
+        padding: 10px 8px;
+        border-radius: 10px;
+      }
+
+      .siteNav a:hover{
+        color: var(--text);
+        background: rgba(255,255,255,.06);
+      }
+
+      @media (max-width: 860px){
+        .siteNav{ gap: 10px; }
+        .siteNav a{ font-size: 10px; padding: 8px 6px; }
+      }
+    </style>
   </body>
 </html>

@@ -1,6 +1,5 @@
 // src/scripts/binary.js
-// Computing:Box — Binary Simulator logic (Unsigned + Two's Complement)
-// Matches IDs/classes in binary.astro
+// Computing:Box — Binary page logic (Unsigned + Two's Complement)
 
 (() => {
   /* -----------------------------
@@ -13,8 +12,6 @@
 
   const modeToggle = document.getElementById("modeToggle");
   const modeHint = document.getElementById("modeHint");
-  const lblUnsigned = document.getElementById("lblUnsigned");
-  const lblTwos = document.getElementById("lblTwos");
 
   const btnCustomBinary = document.getElementById("btnCustomBinary");
   const btnCustomDenary = document.getElementById("btnCustomDenary");
@@ -29,18 +26,15 @@
   const btnBitsUp = document.getElementById("btnBitsUp");
   const btnBitsDown = document.getElementById("btnBitsDown");
 
-  const toolbox = document.getElementById("toolbox");
   const toolboxToggle = document.getElementById("toolboxToggle");
+  const toolboxPanel = document.getElementById("toolboxPanel");
 
   /* -----------------------------
      STATE
   ----------------------------- */
   let bitCount = clampInt(Number(bitsInput?.value ?? 8), 1, 64);
-
-  // bits[i] is bit value 2^i (LSB at i=0)
   let bits = new Array(bitCount).fill(false);
 
-  // Random run timer (brief)
   let randomTimer = null;
 
   /* -----------------------------
@@ -60,7 +54,7 @@
   }
 
   function unsignedMaxExclusive(nBits) {
-    return pow2Big(nBits); // 2^n
+    return pow2Big(nBits);
   }
 
   function unsignedMaxValue(nBits) {
@@ -95,18 +89,16 @@
     const u = bitsToUnsignedBigInt();
     const signBit = bits[bitCount - 1] === true;
     if (!signBit) return u;
-    return u - pow2Big(bitCount); // negative: u - 2^n
+    return u - pow2Big(bitCount);
   }
 
   function signedBigIntToBitsTwos(vSigned) {
-    const span = pow2Big(bitCount); // 2^n
-    // convert to unsigned representative: v mod 2^n
-    const v = ((vSigned % span) + span) % span;
+    const span = pow2Big(bitCount);
+    let v = ((vSigned % span) + span) % span;
     unsignedBigIntToBits(v);
   }
 
   function formatBinaryGrouped() {
-    // MSB..LSB with space every 4 bits
     let s = "";
     for (let i = bitCount - 1; i >= 0; i--) {
       s += bits[i] ? "1" : "0";
@@ -118,11 +110,9 @@
 
   function updateModeHint() {
     if (!modeHint) return;
-    if (isTwosMode()) {
-      modeHint.textContent = "Tip: In two’s complement, the left-most bit (MSB) represents a negative value.";
-    } else {
-      modeHint.textContent = "Tip: In unsigned binary, all bits represent positive values.";
-    }
+    modeHint.textContent = isTwosMode()
+      ? "Tip: In two’s complement, the left-most bit (MSB) represents a negative value."
+      : "Tip: In unsigned binary, all bits represent positive values.";
   }
 
   /* -----------------------------
@@ -132,32 +122,27 @@
     bitCount = clampInt(count, 1, 64);
     if (bitsInput) bitsInput.value = String(bitCount);
 
-    // preserve existing LSBs where possible
     const oldBits = bits.slice();
     bits = new Array(bitCount).fill(false);
     for (let i = 0; i < Math.min(oldBits.length, bitCount); i++) bits[i] = oldBits[i];
 
     bitsGrid.innerHTML = "";
 
-    // Render MSB..LSB left-to-right
     for (let i = bitCount - 1; i >= 0; i--) {
       const bitEl = document.createElement("div");
       bitEl.className = "bit";
-
       bitEl.innerHTML = `
-        <div class="bulb" id="bulb-${i}" aria-hidden="true"></div>
+        <div class="bulb" id="bulb-${i}" aria-hidden="true">💡</div>
         <div class="bitVal" id="bitLabel-${i}"></div>
         <label class="switch" aria-label="Toggle bit ${i}">
           <input type="checkbox" data-index="${i}">
           <span class="slider"></span>
         </label>
       `;
-
       bitsGrid.appendChild(bitEl);
     }
 
-    // Hook switches (only the bit switches, not the mode toggle)
-    bitsGrid.querySelectorAll('input[type="checkbox"][data-index]').forEach((input) => {
+    bitsGrid.querySelectorAll('input[type="checkbox"]').forEach((input) => {
       input.addEventListener("change", () => {
         const i = Number(input.dataset.index);
         bits[i] = input.checked;
@@ -176,6 +161,9 @@
       const label = document.getElementById(`bitLabel-${i}`);
       if (!label) continue;
 
+      // Keep label on ONE LINE (no wrapping)
+      label.style.whiteSpace = "nowrap";
+
       if (isTwosMode() && i === bitCount - 1) {
         label.textContent = `-${pow2Big(bitCount - 1).toString()}`;
       } else {
@@ -185,7 +173,7 @@
   }
 
   function syncSwitchesToBits() {
-    bitsGrid.querySelectorAll('input[type="checkbox"][data-index]').forEach((input) => {
+    bitsGrid.querySelectorAll('input[type="checkbox"]').forEach((input) => {
       const i = Number(input.dataset.index);
       input.checked = !!bits[i];
     });
@@ -201,12 +189,7 @@
 
   function updateReadout() {
     if (!denaryEl || !binaryEl) return;
-
-    if (isTwosMode()) {
-      denaryEl.textContent = bitsToSignedBigIntTwos().toString();
-    } else {
-      denaryEl.textContent = bitsToUnsignedBigInt().toString();
-    }
+    denaryEl.textContent = (isTwosMode() ? bitsToSignedBigIntTwos() : bitsToUnsignedBigInt()).toString();
     binaryEl.textContent = formatBinaryGrouped();
   }
 
@@ -219,12 +202,11 @@
   }
 
   /* -----------------------------
-     SET FROM INPUTS
+     INPUT SETTERS
   ----------------------------- */
   function setFromBinaryString(binStr) {
     const clean = String(binStr ?? "").replace(/\s+/g, "");
     if (!/^[01]+$/.test(clean)) return false;
-
     const padded = clean.slice(-bitCount).padStart(bitCount, "0");
     for (let i = 0; i < bitCount; i++) {
       const charFromRight = padded[padded.length - 1 - i];
@@ -265,21 +247,19 @@
      SHIFTS
   ----------------------------- */
   function shiftLeft() {
-    for (let i = bitCount - 1; i >= 1; i--) {
-      bits[i] = bits[i - 1];
-    }
+    for (let i = bitCount - 1; i >= 1; i--) bits[i] = bits[i - 1];
     bits[0] = false;
     updateUI();
   }
 
   function shiftRight() {
-    // ✅ Arithmetic Right Shift in two's complement: preserve MSB (sign bit)
-    const preserveMSB = isTwosMode() ? bits[bitCount - 1] : false;
+    // Unsigned: logical right shift (MSB becomes 0)
+    // Two's complement: arithmetic right shift (MSB preserved)
+    const msb = bits[bitCount - 1];
 
-    for (let i = 0; i < bitCount - 1; i++) {
-      bits[i] = bits[i + 1];
-    }
-    bits[bitCount - 1] = preserveMSB;
+    for (let i = 0; i < bitCount - 1; i++) bits[i] = bits[i + 1];
+
+    bits[bitCount - 1] = isTwosMode() ? msb : false;
     updateUI();
   }
 
@@ -296,7 +276,7 @@
       const min = twosMin(bitCount);
       const max = twosMax(bitCount);
       let v = bitsToSignedBigIntTwos() + 1n;
-      if (v > max) v = min; // wrap
+      if (v > max) v = min;
       signedBigIntToBitsTwos(v);
     } else {
       const span = unsignedMaxExclusive(bitCount);
@@ -311,7 +291,7 @@
       const min = twosMin(bitCount);
       const max = twosMax(bitCount);
       let v = bitsToSignedBigIntTwos() - 1n;
-      if (v < min) v = max; // wrap
+      if (v < min) v = max;
       signedBigIntToBitsTwos(v);
     } else {
       const span = unsignedMaxExclusive(bitCount);
@@ -322,7 +302,7 @@
   }
 
   /* -----------------------------
-     RANDOM (crypto, BigInt-safe)
+     RANDOM (with running pulse + longer run)
   ----------------------------- */
   function cryptoRandomBigInt(maxExclusive) {
     if (maxExclusive <= 0n) return 0n;
@@ -346,26 +326,22 @@
 
   function setRandomOnce() {
     const span = unsignedMaxExclusive(bitCount); // 2^n
-    const u = cryptoRandomBigInt(span); // 0..2^n-1
+    const u = cryptoRandomBigInt(span);
     unsignedBigIntToBits(u);
     updateUI();
   }
 
-  function stopRandomPulse() {
-    btnRandom?.classList.remove("running");
-  }
-
   function runRandomBriefly() {
-    // stop any existing run first
     if (randomTimer) {
       clearInterval(randomTimer);
       randomTimer = null;
     }
 
-    btnRandom?.classList.add("running");
+    // pulse while running
+    btnRandom?.classList.add("is-running");
 
     const start = Date.now();
-    const durationMs = 900;
+    const durationMs = 1125; // 25% longer than 900ms
     const tickMs = 80;
 
     randomTimer = setInterval(() => {
@@ -373,7 +349,7 @@
       if (Date.now() - start >= durationMs) {
         clearInterval(randomTimer);
         randomTimer = null;
-        stopRandomPulse();
+        btnRandom?.classList.remove("is-running");
       }
     }, tickMs);
   }
@@ -382,28 +358,22 @@
      BIT WIDTH
   ----------------------------- */
   function setBitWidth(n) {
-    const v = clampInt(n, 1, 64);
-    buildBits(v);
+    buildBits(clampInt(n, 1, 64));
   }
 
   /* -----------------------------
-     TOOLBOX TOGGLE
+     TOOLBOX VISIBILITY
   ----------------------------- */
-  function setToolboxHidden(hidden) {
-    if (!toolbox) return;
-    toolbox.style.display = hidden ? "none" : "";
-    toolboxToggle?.setAttribute("aria-expanded", hidden ? "false" : "true");
+  function setToolboxVisible(isVisible) {
+    if (!toolboxPanel) return;
+    toolboxPanel.style.display = isVisible ? "flex" : "none";
+    toolboxToggle?.setAttribute("aria-expanded", String(isVisible));
   }
-
-  toolboxToggle?.addEventListener("click", () => {
-    const hidden = toolbox?.style.display === "none";
-    setToolboxHidden(!hidden);
-  });
 
   /* -----------------------------
      EVENTS
   ----------------------------- */
-  modeToggle?.addEventListener("change", () => updateUI());
+  modeToggle?.addEventListener("change", updateUI);
 
   btnCustomBinary?.addEventListener("click", () => {
     const v = prompt(`Enter binary (spaces allowed). Current width: ${bitCount} bits`);
@@ -428,7 +398,6 @@
   btnDec?.addEventListener("click", decrement);
 
   btnClear?.addEventListener("click", clearAll);
-
   btnRandom?.addEventListener("click", runRandomBriefly);
 
   btnBitsUp?.addEventListener("click", () => setBitWidth(bitCount + 1));
@@ -436,10 +405,15 @@
 
   bitsInput?.addEventListener("change", () => setBitWidth(Number(bitsInput.value)));
 
+  toolboxToggle?.addEventListener("click", () => {
+    const isOpen = toolboxToggle.getAttribute("aria-expanded") !== "false";
+    setToolboxVisible(!isOpen);
+  });
+
   /* -----------------------------
      INIT
   ----------------------------- */
   updateModeHint();
   buildBits(bitCount);
-  setToolboxHidden(false);
+  setToolboxVisible(true);
 })();
