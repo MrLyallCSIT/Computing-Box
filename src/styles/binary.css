@@ -1,218 +1,214 @@
 :root{
-  --bg:#1f2027;
-  --panel2:rgba(255,255,255,.04);
-  --text:#e8e8ee;
-  --muted:#a9acb8;
-  --accent:#33ff7a;
-  --accent-dim:rgba(51,255,122,.15);
-  --line:rgba(255,255,255,.12);
+  --bg: #1f2027;
+  --panel2: rgba(255,255,255,.04);
+  --text: #e8e8ee;
+  --muted: #a9acb8;
+
+  --accent: #33ff7a;
+  --accent-dim: rgba(51,255,122,.15);
+
+  --line: rgba(255,255,255,.12);
 
   /* Toolbox sizing */
-  --toolboxW: 320px;               /* default width */
-  --toolboxGap: 20px;              /* gap from right edge */
-  --toolboxTop: 92px;              /* below header area */
+  --toolbox-w: 320px;
+  --toolbox-gap: 26px;
 }
 
-/* ---------- Fonts ---------- */
-/* Numbers */
+/* NUMBERS */
 @font-face{
-  font-family:"DSEG7ClassicRegular";
+  font-family: "DSEG7ClassicRegular";
   src:
     url("/fonts/DSEG7Classic-Regular.woff") format("woff"),
     url("/fonts/DSEG7Classic-Regular.ttf") format("truetype");
-  font-weight:400;
-  font-style:normal;
-  font-display:swap;
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
 }
 
-/* Text */
+/* TEXT */
 @font-face{
-  font-family:"SevenSegment";
+  font-family: "SevenSegment";
   src:
     url("/fonts/Seven-Segment.woff2") format("woff2"),
     url("/fonts/Seven-Segment.woff") format("woff");
-  font-weight:400;
-  font-style:normal;
-  font-display:swap;
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
 }
 
-*{ box-sizing:border-box; }
+*{ box-sizing: border-box; }
 
 body{
   margin:0;
-  background:var(--bg);
-  color:var(--text);
-  font-family:"SevenSegment", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "SevenSegment", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
 }
 
-/* When toolbox is collapsed, we remove the reserved padding */
-body.toolbox-collapsed{
-  --toolboxW: 0px;
-}
-
-/* ---------- Main layout ---------- */
 .wrap{
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 32px 20px 60px;
-
-  /* reserve room for the fixed toolbox so it NEVER overlaps */
-  padding-right: calc(20px + var(--toolboxW) + var(--toolboxGap));
-  transition: padding-right .2s ease;
 }
 
-body.toolbox-collapsed .wrap{
-  padding-right: 20px;
-}
-
+/* Main layout:
+   - reserve space for the toolbox when open so it NEVER overlaps
+   - when closed, the left content re-centres because column disappears
+*/
 .topGrid{
   display:grid;
-  grid-template-columns: 1fr;
-  gap:28px;
+  grid-template-columns: 1fr var(--toolbox-w);
+  gap: var(--toolbox-gap);
   align-items:start;
 }
 
+body.toolbox-closed .topGrid{
+  grid-template-columns: 1fr;
+  gap: 0;
+}
+
+/* LEFT */
 .readout{
   text-align:center;
-  padding:10px 10px 0;
+  padding: 10px 10px 0;
 }
 
 .label{
-  letter-spacing:.18em;
-  font-weight:700;
-  color:var(--muted);
-  text-transform:uppercase;
-  font-size:14px;
-  margin-top:10px;
+  letter-spacing: .18em;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  font-size: 14px;
+  margin-top: 10px;
 }
 
-/* All numbers */
-.num,
-.bitVal,
-.bitInput{
-  font-family:"DSEG7ClassicRegular", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-weight:400;
-}
-
-/* Denary/Binary display (25% smaller than before) */
+/* Numbers use DSEG */
 .num{
-  color:var(--accent);
-  text-shadow:0 0 18px var(--accent-dim);
-  letter-spacing: 0.03em; /* + a pixel-ish feel */
+  font-family: "DSEG7ClassicRegular", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-weight: 400;
+  color: var(--accent);
+  text-shadow: 0 0 18px var(--accent-dim);
 }
 
+/* Denary is smaller than it used to be */
 .denaryValue{
-  font-size: 52px; /* was ~70 */
-  line-height:1.0;
-  margin:6px 0 10px;
+  font-size: 56px;
+  line-height: 1.0;
+  margin: 6px 0 10px;
 }
 
+/* Binary wraps (JS inserts \n), keep spacing readable */
 .binaryValue{
-  font-size: 39px; /* was ~52 */
-  line-height:1.05;
-  margin:6px 0 14px;
-  white-space: pre-wrap;
-  word-break: normal;
-  overflow-wrap: normal;
-  letter-spacing: 0.06em; /* widen characters slightly */
+  font-size: 44px;
+  line-height: 1.05;
+  margin: 6px 0 14px;
+  white-space: pre-line;
+  letter-spacing: 0.02em;
 }
 
 /* Buttons */
 .controlsStack{
-  margin-top:10px;
+  margin-top: 10px;
   display:flex;
   flex-direction:column;
-  gap:10px;
   align-items:center;
 }
 
+/* extra spacing between custom and shift rows */
 .controlsRow{
   display:flex;
-  gap:12px;
+  gap: 12px;
   justify-content:center;
   flex-wrap:wrap;
 }
+.controlsRowCustom{ margin-bottom: 14px; }
+.controlsRowShift{ margin-bottom: 0; }
 
 .btn{
-  background:rgba(255,255,255,.06);
-  border:1px solid rgba(255,255,255,.14);
-  color:#fff;
-  padding:12px 14px;
-  border-radius:12px;
-  font-weight:700;
-  cursor:pointer;
-  min-width:170px;
-  font-family:"SevenSegment", system-ui, sans-serif;
-  letter-spacing: .06em;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.14);
+  color: #fff;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  min-width: 170px;
 }
 .btn:active{ transform: translateY(1px); }
 
 .btnAccent{
-  background:rgba(51,255,122,.18);
-  border-color:rgba(51,255,122,.45);
+  background: rgba(51,255,122,.18);
+  border-color: rgba(51,255,122,.45);
 }
 
 .divider{
-  margin-top:26px;
-  border-top:1px solid var(--line);
+  margin-top: 26px;
+  border-top: 1px solid var(--line);
 }
 
-/* ---------- Bits grid ---------- */
-.bitsWrap{ margin-top:22px; }
+/* Bits area */
+.bitsWrap{ margin-top: 22px; }
 
-/* auto-fit prevents overlap at large values without shrinking the digits */
+/* IMPORTANT: Use auto-fit so columns get wider when toolbox is open,
+   preventing long bit values from overlapping.
+*/
 .bitsGrid{
   display:grid;
-  gap:18px;
+  gap: 18px;
   justify-content:center;
-  padding-top:18px;
-
-  /* each tile has a safe min width so large labels don't collide */
+  padding-top: 18px;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  max-width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
 }
 
 .bit{
   display:flex;
   flex-direction:column;
   align-items:center;
-  gap:10px;
-  padding:8px 4px;
+  gap: 10px;
+  padding: 8px 4px;
   text-align:center;
-  min-width:120px;
 }
 
+/* Bulb: emoji only (no circle) */
 .bulb{
-  /* NO circle/ring. Just the emoji. 25% bigger than prior ~26px -> ~33px */
-  font-size: 33px;
-  line-height:1;
-  background:transparent;
-  border:none;
-  width:auto;
-  height:auto;
-  opacity:.45;
+  font-size: 33px; /* ~25% larger */
+  line-height: 1;
+  opacity: .45;
   filter: grayscale(1);
-  text-shadow:none;
-  user-select:none;
+  text-shadow: none;
+  user-select: none;
+}
+.bulb.on{
+  opacity: 1;
+  filter: grayscale(0);
+  text-shadow: 0 0 14px rgba(255,216,107,.75), 0 0 26px rgba(255,216,107,.45);
 }
 
+/* Bit value */
 .bitVal{
-  font-size:28px;
-  color:var(--text);
-  opacity:.95;
-  line-height:1;
-  min-height:32px;
-  white-space: nowrap; /* stop wrapping into each other */
-  letter-spacing: 0.02em;
+  font-family:"DSEG7ClassicRegular", ui-monospace, monospace;
+  font-size: 28px;
+  color: var(--text);
+  opacity: .95;
+  line-height: 1.05;
+  min-height: 34px;
+
+  /* prevent overlap */
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* Shared toggle switch (bit switches + mode) */
+/* Switch styling (reused) */
 .switch{
-  position:relative;
-  width:56px;
-  height:34px;
+  position: relative;
+  width: 56px;
+  height: 34px;
   display:inline-block;
-  flex:0 0 auto;
+  flex: 0 0 auto;
 }
 .switch input{
   opacity:0;
@@ -222,195 +218,170 @@ body.toolbox-collapsed .wrap{
 .slider{
   position:absolute;
   inset:0;
-  background:rgba(255,255,255,.10);
-  border:1px solid rgba(255,255,255,.14);
-  border-radius:999px;
-  transition:.18s ease;
+  background: rgba(255,255,255,.10);
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 999px;
+  transition: .18s ease;
 }
 .slider::before{
   content:"";
   position:absolute;
-  height:28px;
-  width:28px;
-  left:3px;
-  top:2px;
-  background:rgba(255,255,255,.92);
-  border-radius:50%;
-  transition:.18s ease;
+  height: 28px;
+  width: 28px;
+  left: 3px;
+  top: 2px;
+  background: rgba(255,255,255,.92);
+  border-radius: 50%;
+  transition: .18s ease;
 }
 .switch input:checked + .slider{
-  background:rgba(51,255,122,.20);
-  border-color:rgba(51,255,122,.55);
+  background: rgba(51,255,122,.20);
+  border-color: rgba(51,255,122,.55);
 }
 .switch input:checked + .slider::before{
   transform: translateX(22px);
-  background:var(--accent);
+  background: var(--accent);
 }
 
-/* ---------- Toolbox (fixed, non-overlapping) ---------- */
-.toolboxToggle{
-  position: fixed;
+/* RIGHT TOOLBOX (fixed to right, but never overlaps because layout reserves space) */
+.toolboxDock{
+  position: sticky;
   top: 18px;
-  right: var(--toolboxGap);
-  z-index: 40;
+  justify-self: end;
+}
 
-  display:flex;
+body.toolbox-closed .toolboxDock{
+  display: none;
+}
+
+.toolboxToggle{
+  display:inline-flex;
   align-items:center;
-  gap:10px;
-
+  gap: 10px;
   background: rgba(255,255,255,.06);
-  border:1px solid rgba(255,255,255,.14);
-  color:#fff;
+  border: 1px solid rgba(255,255,255,.14);
+  color: #fff;
   border-radius: 12px;
   padding: 10px 12px;
-  cursor:pointer;
-
-  font-family:"SevenSegment", system-ui, sans-serif;
-  letter-spacing:.06em;
+  cursor: pointer;
+  font-weight: 800;
+  margin-bottom: 12px;
 }
 
-.toolboxIcon{ font-size: 16px; line-height:1; }
-.toolboxText{ font-weight:800; font-size: 14px; }
-
-.toolboxFixed{
-  position: fixed;
-  top: var(--toolboxTop);
-  right: var(--toolboxGap);
-  width: var(--toolboxW);
-  z-index: 35;
-
-  transition: transform .2s ease, opacity .2s ease;
+.toolboxToggleText{
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  font-size: 12px;
 }
 
-body.toolbox-collapsed .toolboxFixed{
-  transform: translateX(calc(100% + var(--toolboxGap)));
-  opacity: 0;
-  pointer-events: none;
-}
-
-/* cards inside toolbox */
-.panelCol{
+.toolboxPanel{
   display:flex;
   flex-direction:column;
-  gap:14px;
+  gap: 14px;
 }
 
+/* Cards */
 .card{
   background: var(--panel2);
-  border:1px solid rgba(255,255,255,.10);
-  border-radius:14px;
-  padding:14px;
-  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 14px;
+  padding: 14px;
 }
 
 .cardTitle{
-  letter-spacing:.18em;
-  font-weight:800;
-  color:var(--muted);
-  text-transform:uppercase;
-  font-size:12px;
-  margin:0 0 10px;
+  letter-spacing: .18em;
+  font-weight: 800;
+  color: var(--muted);
+  text-transform: uppercase;
+  font-size: 12px;
+  margin: 0 0 10px;
 }
 
 .hint{
-  color:var(--muted);
-  font-size:12px;
-  margin-top:8px;
-  line-height:1.35;
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 8px;
+  line-height: 1.35;
 }
 
 .toggleRow{
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap:10px;
+  gap: 10px;
 }
 
 .toggleLabel{
-  color:var(--text);
-  font-weight:700;
-  font-size:14px;
+  color: var(--text);
+  font-weight: 700;
+  font-size: 14px;
 }
 
-/* ---------- Tools merged layout ---------- */
-.toolsTopRow{
+/* Tools layout */
+.toolsRowTop{
   display:grid;
   grid-template-columns: 1fr 1fr;
-  gap:10px;
+  gap: 10px;
   align-items:center;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
-.spinGroup{
-  display:grid;
-  grid-template-columns: 1fr 1fr;
-  gap:10px;
-}
-
-.toolsBottomRow{
-  display:grid;
-  grid-template-columns: 1.25fr 0.75fr; /* bit width gets more space than random */
-  gap:10px;
-  align-items:end;
-}
-
-.toolBtn{
-  height:48px;
-  border-radius:12px;
-  background:rgba(255,255,255,.06);
-  border:1px solid rgba(255,255,255,.14);
-  color:#fff;
-  cursor:pointer;
-  font-weight:800;
-  font-family:"SevenSegment", system-ui, sans-serif;
-  letter-spacing:.06em;
-}
-
-.toolSpin{
-  font-size:22px;
-  width: 100%; /* kept narrow via grid allocation */
-}
-
-.toolDown{
-  background: rgba(255, 70, 70, .20);
-  border-color: rgba(255, 70, 70, .45);
-}
-
-.toolUp{
-  background: rgba(51,255,122,.20);
-  border-color: rgba(51,255,122,.55);
-}
-
-.toolReset{
-  width: 100%;
-}
-
-.toolRandom{
-  width: 100%;
-  /* make random ~5% narrower by padding reduction (without breaking grid) */
-  padding-left: 10px;
-  padding-right: 10px;
-}
-
-/* bit width mini block */
-.bitWidthMini{
+.toolsArrowsCentered{
   display:flex;
-  flex-direction:column;
-  gap:6px;
+  justify-content:center;
+  gap: 10px;
 }
 
-.bitWidthMiniLabel{
-  color:var(--muted);
-  font-size:12px;
-  font-weight:800;
-  letter-spacing:.18em;
-  text-transform:uppercase;
+/* Buttons */
+.toolBtn{
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.14);
+  color: #fff;
+  cursor: pointer;
+  font-weight: 800;
+  font-size: 20px;
+  min-width: 44px;
 }
 
-.bitWidthMiniRow{
+.toolBtnWide{
+  width: 100%;
+  font-size: 16px;
+}
+
+.toolBtnDec{
+  background: rgba(255, 80, 80, .16);
+  border-color: rgba(255, 80, 80, .35);
+}
+
+.toolBtnInc{
+  background: rgba(51,255,122,.18);
+  border-color: rgba(51,255,122,.45);
+}
+
+.bitWidthSubCard{
+  width: 100%;
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.bitWidthTitle{
+  letter-spacing: .18em;
+  font-weight: 800;
+  color: var(--muted);
+  text-transform: uppercase;
+  font-size: 12px;
+  margin: 0 0 10px;
+}
+
+.bitWidthRow{
   display:grid;
   grid-template-columns: 44px 1fr 44px;
-  gap:10px;
+  gap: 10px;
   align-items:center;
 }
 
@@ -424,19 +395,36 @@ body.toolbox-collapsed .toolboxFixed{
   cursor:pointer;
   font-weight:900;
   font-size:18px;
-  font-family:"SevenSegment", system-ui, sans-serif;
 }
 
-.bitInput{
-  width: 100%;
-  min-width: 64px;     /* MUST fit 2 digits comfortably */
-  text-align:center;
+.bitInputWrap{
   background:rgba(255,255,255,.06);
   border:1px solid rgba(255,255,255,.14);
   border-radius:12px;
-  padding:10px 8px;
+  padding:10px 12px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  min-width: 0;
+}
+
+.bitInputLabel{
+  color:var(--muted);
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+}
+
+.bitInput{
+  width: 72px; /* fits 2 digits comfortably */
+  text-align:right;
+  background:transparent;
+  border:none;
   outline:none;
   color:var(--accent);
+  font-family:"DSEG7ClassicRegular", ui-monospace, monospace;
   font-size:28px;
 }
 
@@ -446,17 +434,20 @@ body.toolbox-collapsed .toolboxFixed{
   margin:0;
 }
 
-/* ---------- Responsive ---------- */
+.toolsRowBottom{
+  display:grid;
+  grid-template-columns: 1fr;
+  margin-bottom: 2px;
+}
+
+/* Responsive */
 @media (max-width: 980px){
-  .wrap{
-    /* On small screens, don’t reserve fixed sidebar space; toolbox floats */
-    padding-right: 20px;
-  }
-  .toolboxFixed{
-    width: min(320px, calc(100vw - 40px));
-  }
+  .topGrid{ grid-template-columns: 1fr; }
+  .toolboxDock{ position: static; justify-self: stretch; }
+  body.toolbox-closed .toolboxDock{ display:none; }
+  .bitsGrid{ max-width: 100%; }
 }
 
 @media (max-width: 520px){
-  .btn{ min-width:150px; }
+  .btn{ min-width: 150px; }
 }

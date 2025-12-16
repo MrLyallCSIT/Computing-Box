@@ -1,6 +1,6 @@
 // src/scripts/binary.js
 // Computing:Box — Binary page logic (Unsigned + Two's Complement)
-// Matches IDs/classes in src/pages/binary.astro
+// Matches IDs/classes in binary.astro
 
 (() => {
   /* -----------------------------
@@ -28,22 +28,13 @@
   const btnBitsDown = document.getElementById("btnBitsDown");
 
   const toolboxToggle = document.getElementById("toolboxToggle");
-  const toolboxPanel = document.getElementById("toolboxPanel");
 
   /* -----------------------------
      STATE
   ----------------------------- */
   let bitCount = clampInt(Number(bitsInput?.value ?? 8), 1, 64);
-
-  // bits[i] is bit value 2^i (LSB at i=0)
   let bits = new Array(bitCount).fill(false);
-
-  // Random run timer (brief)
   let randomTimer = null;
-
-  // Dynamic wrapping for the big binary display
-  // "nibbles per row" recalculated on resize
-  let nibblesPerRow = 2; // default for small widths
 
   /* -----------------------------
      HELPERS
@@ -62,7 +53,7 @@
   }
 
   function unsignedMaxExclusive(nBits) {
-    return pow2Big(nBits); // 2^n
+    return pow2Big(nBits);
   }
 
   function unsignedMaxValue(nBits) {
@@ -79,9 +70,7 @@
 
   function bitsToUnsignedBigInt() {
     let v = 0n;
-    for (let i = 0; i < bitCount; i++) {
-      if (bits[i]) v += pow2Big(i);
-    }
+    for (let i = 0; i < bitCount; i++) if (bits[i]) v += pow2Big(i);
     return v;
   }
 
@@ -101,70 +90,79 @@
   }
 
   function signedBigIntToBitsTwos(vSigned) {
-    const span = pow2Big(bitCount); // 2^n
-    let v = vSigned;
-    v = ((v % span) + span) % span;
+    const span = pow2Big(bitCount);
+    let v = ((vSigned % span) + span) % span;
     unsignedBigIntToBits(v);
   }
 
   function updateModeHint() {
     if (!modeHint) return;
-    if (isTwosMode()) {
-      modeHint.textContent =
-        "Tip: In two’s complement, the left-most bit (MSB) represents a negative value.";
-    } else {
-      modeHint.textContent =
-        "Tip: In unsigned binary, all bits represent positive values.";
-    }
+    modeHint.textContent = isTwosMode()
+      ? "Tip: In two’s complement, the left-most bit (MSB) represents a negative value."
+      : "Tip: In unsigned binary, all bits represent positive values.";
   }
 
   /* -----------------------------
-     BIG BINARY DISPLAY WRAP
-     - Determines how many nibbles (4 bits) fit per row
-     - Recalculates on window resize
+     BINARY WRAP (responsive nibbles per row)
+     - Calculates how many 4-bit groups fit in the visible area
+     - Re-runs on resize
   ----------------------------- */
-  function computeNibblesPerRow() {
-    if (!binaryEl) return;
-
-    // available width for the binary number = element width
-    const w = binaryEl.getBoundingClientRect().width;
-
-    // Approximate "nibble width" in pixels:
-    // 4 digits + a space; use font size and letter-spacing to estimate.
-    // This doesn't need to be perfect, just stable and responsive.
-    const style = window.getComputedStyle(binaryEl);
-    const fontSize = parseFloat(style.fontSize || "40"); // px
-    const letterSpacing = parseFloat(style.letterSpacing || "0");
-    const digitW = fontSize * 0.62 + letterSpacing; // rough digit width
-    const nibbleW = digitW * 4 + digitW * 1.2; // include gap between nibbles
-
-    // Always allow at least 2 nibbles per row
-    const fit = Math.max(2, Math.floor(w / nibbleW));
-    nibblesPerRow = fit;
+  function measureNibbleWidthPx() {
+    // Measure "0000 " at current binary font settings
+    const probe = document.createElement("span");
+    probe.style.position = "absolute";
+    probe.style.visibility = "hidden";
+    probe.style.whiteSpace = "pre";
+    probe.style.font = getComputedStyle(binaryEl).font;
+    probe.style.letterSpacing = getComputedStyle(binaryEl).letterSpacing;
+    probe.textContent = "0000 ";
+    document.body.appendChild(probe);
+    const w = probe.getBoundingClientRect().width;
+    probe.remove();
+    return Math.max(1, w);
   }
 
-  function formatBinaryGroupedWrapped() {
-    // Build MSB..LSB and group into nibbles
-    const nibbles = [];
-    let current = "";
+  function nibblesPerRow() {
+    if (!binaryEl) return Math.max(1, Math.ceil(bitCount / 4));
 
-    for (let i = bitCount - 1; i >= 0; i--) {
-      current += bits[i] ? "1" : "0";
-      const posFromRight = (bitCount - i);
-      if (posFromRight % 4 === 0 || i === 0) {
-        // if last group is partial, left-pad inside the group
-        if (current.length < 4) current = current.padStart(4, "0");
-        nibbles.push(current);
-        current = "";
+    const nibbleW = measureNibbleWidthPx();
+
+    // available width is the left column width (the grid reserves toolbox space already)
+    const container = binaryEl.closest(".readout") || binaryEl.parentElement;
+    const avail = container?.getBoundingClientRect().width ?? window.innerWidth;
+
+    // leave a little padding so we don't hit the edge
+    const usable = Math.max(200, avail - 40);
+
+    const perRow = Math.floor(usable / nibbleW);
+    return Math.max(1, perRow);
+  }
+
+  function formatBinaryWrapped() {
+    // Build MSB..LSB grouped by nibbles, then wrap by nibblesPerRow()
+    const nibCount = Math.ceil(bitCount / 4);
+    const perRow = nibblesPerRow();
+
+    let out = [];
+    for (let n = 0; n < nibCount; n++) {
+      // nibble index from MSB side
+      const msbBitIndex = bitCount - 1 - (n * 4);
+      let nib = "";
+      for (let k = 0; k < 4; k++) {
+        const i = msbBitIndex - k;
+        if (i < 0) continue;
+        nib += bits[i] ? "1" : "0";
       }
+      // pad nibble if top group smaller
+      nib = nib.padStart(4, "0");
+      out.push(nib);
     }
 
-    // Now wrap nibbles into lines
-    const lines = [];
-    for (let i = 0; i < nibbles.length; i += nibblesPerRow) {
-      lines.push(nibbles.slice(i, i + nibblesPerRow).join(" "));
+    // wrap into lines
+    let lines = [];
+    for (let i = 0; i < out.length; i += perRow) {
+      lines.push(out.slice(i, i + perRow).join(" "));
     }
-
     return lines.join("\n");
   }
 
@@ -175,7 +173,6 @@
     bitCount = clampInt(count, 1, 64);
     if (bitsInput) bitsInput.value = String(bitCount);
 
-    // preserve existing LSBs where possible
     const oldBits = bits.slice();
     bits = new Array(bitCount).fill(false);
     for (let i = 0; i < Math.min(oldBits.length, bitCount); i++) bits[i] = oldBits[i];
@@ -215,8 +212,6 @@
      UI UPDATE
   ----------------------------- */
   function updateBitLabels() {
-    // Unsigned: 2^i
-    // Two's: MSB is -2^(n-1), others are 2^i
     for (let i = 0; i < bitCount; i++) {
       const label = document.getElementById(`bitLabel-${i}`);
       if (!label) continue;
@@ -240,17 +235,8 @@
     for (let i = 0; i < bitCount; i++) {
       const bulb = document.getElementById(`bulb-${i}`);
       if (!bulb) continue;
-
       const on = bits[i] === true;
-      if (on) {
-        bulb.style.opacity = "1";
-        bulb.style.filter = "grayscale(0)";
-        bulb.style.textShadow = "0 0 14px rgba(255,216,107,.75), 0 0 26px rgba(255,216,107,.45)";
-      } else {
-        bulb.style.opacity = "0.45";
-        bulb.style.filter = "grayscale(1)";
-        bulb.style.textShadow = "none";
-      }
+      bulb.classList.toggle("on", on);
     }
   }
 
@@ -258,16 +244,13 @@
     if (!denaryEl || !binaryEl) return;
 
     if (isTwosMode()) {
-      const signed = bitsToSignedBigIntTwos();
-      denaryEl.textContent = signed.toString();
+      denaryEl.textContent = bitsToSignedBigIntTwos().toString();
     } else {
-      const unsigned = bitsToUnsignedBigInt();
-      denaryEl.textContent = unsigned.toString();
+      denaryEl.textContent = bitsToUnsignedBigInt().toString();
     }
 
-    // Ensure nibble wrapping is up-to-date
-    computeNibblesPerRow();
-    binaryEl.textContent = formatBinaryGroupedWrapped();
+    // responsive wrap of binary digits (nibbles per row)
+    binaryEl.textContent = formatBinaryWrapped();
   }
 
   function updateUI() {
@@ -290,7 +273,6 @@
       const charFromRight = padded[padded.length - 1 - i];
       bits[i] = charFromRight === "1";
     }
-
     updateUI();
     return true;
   }
@@ -357,8 +339,7 @@
       signedBigIntToBitsTwos(v);
     } else {
       const span = unsignedMaxExclusive(bitCount);
-      const v = (bitsToUnsignedBigInt() + 1n) % span;
-      unsignedBigIntToBits(v);
+      unsignedBigIntToBits((bitsToUnsignedBigInt() + 1n) % span);
     }
     updateUI();
   }
@@ -372,8 +353,7 @@
       signedBigIntToBitsTwos(v);
     } else {
       const span = unsignedMaxExclusive(bitCount);
-      const v = (bitsToUnsignedBigInt() - 1n + span) % span;
-      unsignedBigIntToBits(v);
+      unsignedBigIntToBits((bitsToUnsignedBigInt() - 1n + span) % span);
     }
     updateUI();
   }
@@ -431,22 +411,24 @@
      BIT WIDTH
   ----------------------------- */
   function setBitWidth(n) {
-    const v = clampInt(n, 1, 64);
-    buildBits(v);
+    buildBits(clampInt(n, 1, 64));
   }
 
   /* -----------------------------
      TOOLBOX TOGGLE
   ----------------------------- */
-  function setToolboxCollapsed(collapsed) {
-    document.body.classList.toggle("toolbox-collapsed", collapsed);
-    toolboxToggle?.setAttribute("aria-expanded", String(!collapsed));
+  function setToolboxOpen(open) {
+    document.body.classList.toggle("toolbox-open", open);
+    document.body.classList.toggle("toolbox-closed", !open);
+    toolboxToggle?.setAttribute("aria-expanded", open ? "true" : "false");
+    // reflow binary wrapping when toolbox changes
+    requestAnimationFrame(updateUI);
   }
 
   /* -----------------------------
      EVENTS
   ----------------------------- */
-  modeToggle?.addEventListener("change", () => updateUI());
+  modeToggle?.addEventListener("change", updateUI);
 
   btnCustomBinary?.addEventListener("click", () => {
     const v = prompt(`Enter binary (spaces allowed). Current width: ${bitCount} bits`);
@@ -457,8 +439,8 @@
   btnCustomDenary?.addEventListener("click", () => {
     const v = prompt(
       isTwosMode()
-        ? `Enter denary (${twosMin(bitCount).toString()} to ${twosMax(bitCount).toString()}):`
-        : `Enter denary (0 to ${unsignedMaxValue(bitCount).toString()}):`
+        ? `Enter denary (${twosMin(bitCount)} to ${twosMax(bitCount)}):`
+        : `Enter denary (0 to ${unsignedMaxValue(bitCount)}):`
     );
     if (v === null) return;
     if (!setFromDenaryInput(v)) alert("Invalid denary for current mode/bit width");
@@ -479,22 +461,19 @@
   bitsInput?.addEventListener("change", () => setBitWidth(Number(bitsInput.value)));
 
   toolboxToggle?.addEventListener("click", () => {
-    const collapsed = document.body.classList.contains("toolbox-collapsed");
-    setToolboxCollapsed(!collapsed);
-    // ensure binary re-wraps after layout change
-    requestAnimationFrame(() => updateReadout());
+    const open = !document.body.classList.contains("toolbox-closed");
+    setToolboxOpen(!open);
   });
 
-  // Recompute nibble wrapping on resize
   window.addEventListener("resize", () => {
-    // throttled via rAF to avoid spam
-    requestAnimationFrame(() => updateReadout());
+    // re-wrap the binary display live as the window changes
+    updateUI();
   });
 
   /* -----------------------------
      INIT
   ----------------------------- */
   updateModeHint();
-  setToolboxCollapsed(false);
+  setToolboxOpen(true);
   buildBits(bitCount);
 })();

@@ -10,86 +10,11 @@ import "../styles/binary.css";
     <title>Binary | Computing:Box</title>
   </head>
 
-  <body>
-    <!-- Fixed/pinned toolbox toggle -->
-    <button id="toolboxToggle" class="toolboxToggle" type="button" aria-expanded="true" aria-controls="toolboxPanel">
-      <span class="toolboxIcon" aria-hidden="true">🧰</span>
-      <span class="toolboxText">Toolbox</span>
-    </button>
-
-    <!-- Fixed/pinned toolbox panel -->
-    <aside id="toolboxPanel" class="toolboxFixed" aria-label="Toolbox">
-      <div class="panelCol">
-        <div class="card">
-          <div class="cardTitle">Mode</div>
-
-          <div class="toggleRow">
-            <div class="toggleLabel" id="lblUnsigned">Unsigned</div>
-
-            <label class="switch" aria-label="Toggle mode">
-              <input id="modeToggle" type="checkbox" />
-              <span class="slider"></span>
-            </label>
-
-            <div class="toggleLabel" id="lblTwos">Two&rsquo;s complement</div>
-          </div>
-
-          <div class="hint" id="modeHint">
-            Tip: In unsigned binary, all bits represent positive values.
-          </div>
-        </div>
-
-        <!-- MERGED: Tools + Bit width -->
-        <div class="card">
-          <div class="cardTitle">Tools</div>
-
-          <!-- Row 1: ▼ ▲ (left) + Reset (right) -->
-          <div class="toolsTopRow">
-            <div class="spinGroup" aria-label="Increment and decrement">
-              <button class="toolBtn toolSpin toolDown" id="btnDec" type="button" aria-label="Decrement">▼</button>
-              <button class="toolBtn toolSpin toolUp" id="btnInc" type="button" aria-label="Increment">▲</button>
-            </div>
-
-            <button class="toolBtn toolReset" id="btnClear" type="button">Reset</button>
-          </div>
-
-          <!-- Row 2: Bit Width (left) + Random (right) -->
-          <div class="toolsBottomRow">
-            <div class="bitWidthMini" aria-label="Bit width">
-              <div class="bitWidthMiniLabel">Bit width</div>
-
-              <div class="bitWidthMiniRow">
-                <button class="miniBtn" id="btnBitsDown" type="button" aria-label="Decrease bits">−</button>
-
-                <input
-                  id="bitsInput"
-                  class="bitInput"
-                  type="number"
-                  inputmode="numeric"
-                  min="1"
-                  max="64"
-                  step="1"
-                  value="8"
-                  aria-label="Number of bits"
-                />
-
-                <button class="miniBtn" id="btnBitsUp" type="button" aria-label="Increase bits">+</button>
-              </div>
-            </div>
-
-            <button class="toolBtn toolRandom" id="btnRandom" type="button">Random</button>
-          </div>
-
-          <div class="hint">Random runs briefly then stops automatically.</div>
-        </div>
-      </div>
-    </aside>
-
-    <!-- Main content (reserves space for toolbox when open) -->
-    <main id="mainWrap" class="wrap">
+  <body class="toolbox-open">
+    <main class="wrap">
       <section class="topGrid">
-        <!-- LEFT -->
-        <div>
+        <!-- LEFT: readout + buttons -->
+        <div class="leftCol">
           <div class="readout">
             <div class="label">Denary</div>
             <div id="denaryNumber" class="num denaryValue">0</div>
@@ -98,12 +23,12 @@ import "../styles/binary.css";
             <div id="binaryNumber" class="num binaryValue">0000 0000</div>
 
             <div class="controlsStack">
-              <div class="controlsRow">
+              <div class="controlsRow controlsRowCustom">
                 <button class="btn btnAccent" id="btnCustomBinary" type="button">Custom Binary</button>
                 <button class="btn btnAccent" id="btnCustomDenary" type="button">Custom Denary</button>
               </div>
 
-              <div class="controlsRow">
+              <div class="controlsRow controlsRowShift">
                 <button class="btn" id="btnShiftLeft" type="button">Left Shift</button>
                 <button class="btn" id="btnShiftRight" type="button">Right Shift</button>
               </div>
@@ -112,14 +37,89 @@ import "../styles/binary.css";
 
           <div class="divider"></div>
 
+          <!-- Bits render here -->
           <section class="bitsWrap" aria-label="Bit switches">
             <div class="bitsGrid" id="bitsGrid"></div>
           </section>
         </div>
+
+        <!-- RIGHT: fixed toolbox -->
+        <aside class="toolboxDock" aria-label="Toolbox">
+          <button id="toolboxToggle" class="toolboxToggle" type="button" aria-expanded="true">
+            🧰 <span class="toolboxToggleText">Toolbox</span>
+          </button>
+
+          <div class="toolboxPanel" id="toolboxPanel">
+            <div class="card">
+              <div class="cardTitle">Mode</div>
+              <div class="toggleRow">
+                <div class="toggleLabel" id="lblUnsigned">Unsigned</div>
+
+                <label class="switch" aria-label="Toggle mode">
+                  <input id="modeToggle" type="checkbox" />
+                  <span class="slider"></span>
+                </label>
+
+                <div class="toggleLabel" id="lblTwos">Two’s complement</div>
+              </div>
+
+              <div class="hint" id="modeHint">
+                Tip: In unsigned binary, all bits represent positive values.
+              </div>
+            </div>
+
+            <!-- merged Tools + Bit Width -->
+            <div class="card">
+              <div class="cardTitle">Tools</div>
+
+              <!-- row 1: dec/inc centred + reset at right -->
+              <div class="toolsRowTop">
+                <div class="toolsArrowsCentered">
+                  <button class="toolBtn toolBtnDec" id="btnDec" type="button" aria-label="Decrement">▼</button>
+                  <button class="toolBtn toolBtnInc" id="btnInc" type="button" aria-label="Increment">▲</button>
+                </div>
+
+                <button class="toolBtn toolBtnWide" id="btnClear" type="button">Reset</button>
+              </div>
+
+              <!-- bit width (full width sub-card) -->
+              <div class="bitWidthSubCard">
+                <div class="bitWidthTitle">Bit width</div>
+
+                <div class="bitWidthRow">
+                  <button class="miniBtn" id="btnBitsDown" type="button" aria-label="Decrease bits">−</button>
+
+                  <div class="bitInputWrap">
+                    <div class="bitInputLabel">Bits</div>
+                    <input
+                      id="bitsInput"
+                      class="bitInput"
+                      type="number"
+                      inputmode="numeric"
+                      min="1"
+                      max="64"
+                      step="1"
+                      value="8"
+                      aria-label="Number of bits"
+                    />
+                  </div>
+
+                  <button class="miniBtn" id="btnBitsUp" type="button" aria-label="Increase bits">+</button>
+                </div>
+              </div>
+
+              <!-- row 3: reset + random same row, below arrows -->
+              <div class="toolsRowBottom">
+                <button class="toolBtn toolBtnWide" id="btnRandom" type="button">Random</button>
+              </div>
+
+              <div class="hint">Random runs briefly then stops automatically.</div>
+            </div>
+          </div>
+        </aside>
       </section>
     </main>
 
-    <!-- JS stays in src/ and is bundled by Astro/Vite -->
     <script type="module" src="/src/scripts/binary.js"></script>
   </body>
 </html>
