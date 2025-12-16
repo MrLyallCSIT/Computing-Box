@@ -3,18 +3,14 @@
   --panel2: rgba(255,255,255,.04);
   --text: #e8e8ee;
   --muted: #a9acb8;
-
   --accent: #33ff7a;
   --accent-dim: rgba(51,255,122,.15);
-
   --line: rgba(255,255,255,.12);
 
-  /* Toolbox sizing */
-  --toolbox-w: 320px;
-  --toolbox-gap: 26px;
+  --toolbox-width: 320px; /* adjust if needed */
+  --toolbox-gap: 28px;
 }
 
-/* NUMBERS */
 @font-face{
   font-family: "DSEG7ClassicRegular";
   src:
@@ -25,7 +21,6 @@
   font-display: swap;
 }
 
-/* TEXT */
 @font-face{
   font-family: "SevenSegment";
   src:
@@ -36,7 +31,9 @@
   font-display: swap;
 }
 
-*{ box-sizing: border-box; }
+html, body{
+  height: 100%;
+}
 
 body{
   margin:0;
@@ -45,29 +42,87 @@ body{
   font-family: "SevenSegment", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
 }
 
+/* ---------------------------------
+   Toolbox toggle (always visible)
+---------------------------------- */
+.toolboxToggle{
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 9999;
+  display:flex;
+  align-items:center;
+  gap: 10px;
+
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.14);
+  color: #fff;
+  border-radius: 12px;
+  padding: 10px 12px;
+  cursor: pointer;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.toolboxToggleIcon{
+  display:inline-block;
+  transform: translateY(1px);
+}
+
+.toolboxToggleText{
+  font-size: 12px;
+}
+
+/* ---------------------------------
+   Fixed toolbox panel
+---------------------------------- */
+.toolbox{
+  position: fixed;
+  top: 74px;               /* leaves room for the toggle button */
+  right: 18px;
+  width: var(--toolbox-width);
+  z-index: 9998;
+}
+
+.toolboxInner{
+  display:flex;
+  flex-direction:column;
+  gap: 14px;
+}
+
+/* When hidden, toolbox slides out but toggle stays */
+body.toolbox-hidden .toolbox{
+  transform: translateX(calc(var(--toolbox-width) + 40px));
+  opacity: 0;
+  pointer-events: none;
+  transition: transform .22s ease, opacity .18s ease;
+}
+
+.toolbox{
+  transition: transform .22s ease, opacity .18s ease;
+}
+
+/* ---------------------------------
+   Main wrap: reserve space for toolbox
+---------------------------------- */
 .wrap{
-  max-width: 1400px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 32px 20px 60px;
+
+  /* Reserve space so toolbox never overlaps bits */
+  padding-right: calc(var(--toolbox-width) + var(--toolbox-gap) + 20px);
+  transition: padding-right .22s ease;
 }
 
-/* Main layout:
-   - reserve space for the toolbox when open so it NEVER overlaps
-   - when closed, the left content re-centres because column disappears
-*/
-.topGrid{
-  display:grid;
-  grid-template-columns: 1fr var(--toolbox-w);
-  gap: var(--toolbox-gap);
-  align-items:start;
+body.toolbox-hidden .wrap{
+  padding-right: 20px;
 }
 
-body.toolbox-closed .topGrid{
-  grid-template-columns: 1fr;
-  gap: 0;
-}
-
-/* LEFT */
+/* ---------------------------------
+   Readout
+---------------------------------- */
 .readout{
   text-align:center;
   padding: 10px 10px 0;
@@ -82,7 +137,6 @@ body.toolbox-closed .topGrid{
   margin-top: 10px;
 }
 
-/* Numbers use DSEG */
 .num{
   font-family: "DSEG7ClassicRegular", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-weight: 400;
@@ -90,39 +144,59 @@ body.toolbox-closed .topGrid{
   text-shadow: 0 0 18px var(--accent-dim);
 }
 
-/* Denary is smaller than it used to be */
+/* (You previously wanted these 25% smaller than earlier large sizes) */
 .denaryValue{
-  font-size: 56px;
+  font-size: 52px;
   line-height: 1.0;
   margin: 6px 0 10px;
 }
 
-/* Binary wraps (JS inserts \n), keep spacing readable */
 .binaryValue{
-  font-size: 44px;
-  line-height: 1.05;
+  font-size: 40px;
+  letter-spacing: .14em; /* +1-2px feel */
+  line-height: 1.08;
   margin: 6px 0 14px;
-  white-space: pre-line;
-  letter-spacing: 0.02em;
+
+  /* Allow wrapping at spaces between nibbles */
+  white-space: pre-wrap;
+  word-break: normal;
+  overflow-wrap: anywhere;
+
+  /* Prevent absurd-wide overflow; respects toolbox space */
+  max-width: calc(100vw - var(--toolbox-width) - 120px);
+  display:inline-block;
 }
 
-/* Buttons */
-.controlsStack{
+.divider{
+  margin-top: 26px;
+  border-top: 1px solid var(--line);
+}
+
+/* ---------------------------------
+   Cards & common controls
+---------------------------------- */
+.card{
+  background: var(--panel2);
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.cardTitle{
+  letter-spacing: .18em;
+  font-weight: 900;
+  color: var(--muted);
+  text-transform: uppercase;
+  font-size: 12px;
+  margin: 0 0 10px;
+}
+
+.hint{
+  color: var(--muted);
+  font-size: 12px;
   margin-top: 10px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
+  line-height: 1.35;
 }
-
-/* extra spacing between custom and shift rows */
-.controlsRow{
-  display:flex;
-  gap: 12px;
-  justify-content:center;
-  flex-wrap:wrap;
-}
-.controlsRowCustom{ margin-bottom: 14px; }
-.controlsRowShift{ margin-bottom: 0; }
 
 .btn{
   background: rgba(255,255,255,.06);
@@ -130,9 +204,12 @@ body.toolbox-closed .topGrid{
   color: #fff;
   padding: 12px 14px;
   border-radius: 12px;
-  font-weight: 700;
+  font-weight: 800;
   cursor: pointer;
-  min-width: 170px;
+  min-width: 0;
+  font-family: "SevenSegment", system-ui, sans-serif;
+  letter-spacing: .12em;
+  text-transform: uppercase;
 }
 .btn:active{ transform: translateY(1px); }
 
@@ -141,68 +218,27 @@ body.toolbox-closed .topGrid{
   border-color: rgba(51,255,122,.45);
 }
 
-.divider{
-  margin-top: 26px;
-  border-top: 1px solid var(--line);
+.btnSmall{
+  padding: 10px 10px;
+  font-size: 12px;
 }
 
-/* Bits area */
-.bitsWrap{ margin-top: 22px; }
-
-/* IMPORTANT: Use auto-fit so columns get wider when toolbox is open,
-   preventing long bit values from overlapping.
-*/
-.bitsGrid{
-  display:grid;
-  gap: 18px;
-  justify-content:center;
-  padding-top: 18px;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  max-width: 1100px;
-  margin: 0 auto;
-}
-
-.bit{
+/* ---------------------------------
+   Settings toggle
+---------------------------------- */
+.toggleRow{
   display:flex;
-  flex-direction:column;
   align-items:center;
+  justify-content:space-between;
   gap: 10px;
-  padding: 8px 4px;
-  text-align:center;
 }
 
-/* Bulb: emoji only (no circle) */
-.bulb{
-  font-size: 33px; /* ~25% larger */
-  line-height: 1;
-  opacity: .45;
-  filter: grayscale(1);
-  text-shadow: none;
-  user-select: none;
-}
-.bulb.on{
-  opacity: 1;
-  filter: grayscale(0);
-  text-shadow: 0 0 14px rgba(255,216,107,.75), 0 0 26px rgba(255,216,107,.45);
-}
-
-/* Bit value */
-.bitVal{
-  font-family:"DSEG7ClassicRegular", ui-monospace, monospace;
-  font-size: 28px;
+.toggleLabel{
   color: var(--text);
-  opacity: .95;
-  line-height: 1.05;
-  min-height: 34px;
-
-  /* prevent overlap */
-  max-width: 100%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-weight: 800;
+  font-size: 14px;
 }
 
-/* Switch styling (reused) */
 .switch{
   position: relative;
   width: 56px;
@@ -243,138 +279,23 @@ body.toolbox-closed .topGrid{
   background: var(--accent);
 }
 
-/* RIGHT TOOLBOX (fixed to right, but never overlaps because layout reserves space) */
-.toolboxDock{
-  position: sticky;
-  top: 18px;
-  justify-self: end;
-}
-
-body.toolbox-closed .toolboxDock{
-  display: none;
-}
-
-.toolboxToggle{
-  display:inline-flex;
-  align-items:center;
-  gap: 10px;
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.14);
-  color: #fff;
-  border-radius: 12px;
-  padding: 10px 12px;
-  cursor: pointer;
-  font-weight: 800;
-  margin-bottom: 12px;
-}
-
-.toolboxToggleText{
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  font-size: 12px;
-}
-
-.toolboxPanel{
-  display:flex;
-  flex-direction:column;
-  gap: 14px;
-}
-
-/* Cards */
-.card{
-  background: var(--panel2);
-  border: 1px solid rgba(255,255,255,.10);
-  border-radius: 14px;
-  padding: 14px;
-}
-
-.cardTitle{
-  letter-spacing: .18em;
-  font-weight: 800;
-  color: var(--muted);
-  text-transform: uppercase;
-  font-size: 12px;
-  margin: 0 0 10px;
-}
-
-.hint{
-  color: var(--muted);
-  font-size: 12px;
-  margin-top: 8px;
-  line-height: 1.35;
-}
-
-.toggleRow{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap: 10px;
-}
-
-.toggleLabel{
-  color: var(--text);
-  font-weight: 700;
-  font-size: 14px;
-}
-
-/* Tools layout */
-.toolsRowTop{
-  display:grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  align-items:center;
-  margin-bottom: 12px;
-}
-
-.toolsArrowsCentered{
-  display:flex;
-  justify-content:center;
-  gap: 10px;
-}
-
-/* Buttons */
-.toolBtn{
-  height: 48px;
-  border-radius: 12px;
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.14);
-  color: #fff;
-  cursor: pointer;
-  font-weight: 800;
-  font-size: 20px;
-  min-width: 44px;
-}
-
-.toolBtnWide{
-  width: 100%;
-  font-size: 16px;
-}
-
-.toolBtnDec{
-  background: rgba(255, 80, 80, .16);
-  border-color: rgba(255, 80, 80, .35);
-}
-
-.toolBtnInc{
-  background: rgba(51,255,122,.18);
-  border-color: rgba(51,255,122,.45);
-}
-
-.bitWidthSubCard{
-  width: 100%;
+/* ---------------------------------
+   Settings: Bit width subcard full width
+---------------------------------- */
+.subCard{
+  margin-top: 12px;
   background: rgba(255,255,255,.03);
   border: 1px solid rgba(255,255,255,.10);
   border-radius: 12px;
   padding: 12px;
-  margin-bottom: 12px;
 }
 
-.bitWidthTitle{
+.subCardTitle{
   letter-spacing: .18em;
-  font-weight: 800;
+  font-weight: 900;
   color: var(--muted);
   text-transform: uppercase;
-  font-size: 12px;
+  font-size: 11px;
   margin: 0 0 10px;
 }
 
@@ -395,6 +316,7 @@ body.toolbox-closed .toolboxDock{
   cursor:pointer;
   font-weight:900;
   font-size:18px;
+  font-family: "SevenSegment", system-ui, sans-serif;
 }
 
 .bitInputWrap{
@@ -406,19 +328,18 @@ body.toolbox-closed .toolboxDock{
   align-items:center;
   justify-content:space-between;
   gap:12px;
-  min-width: 0;
 }
 
 .bitInputLabel{
   color:var(--muted);
   font-size:12px;
-  font-weight:800;
+  font-weight:900;
   letter-spacing:.18em;
   text-transform:uppercase;
 }
 
 .bitInput{
-  width: 72px; /* fits 2 digits comfortably */
+  width: 90px; /* fits 2 digits comfortably */
   text-align:right;
   background:transparent;
   border:none;
@@ -427,27 +348,176 @@ body.toolbox-closed .toolboxDock{
   font-family:"DSEG7ClassicRegular", ui-monospace, monospace;
   font-size:28px;
 }
-
 .bitInput::-webkit-outer-spin-button,
 .bitInput::-webkit-inner-spin-button{
   -webkit-appearance:none;
   margin:0;
 }
 
-.toolsRowBottom{
+/* ---------------------------------
+   Custom card (includes Random)
+---------------------------------- */
+.customGrid{
   display:grid;
-  grid-template-columns: 1fr;
-  margin-bottom: 2px;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.customGrid .btnRandom{
+  grid-column: 1 / -1;
+}
+
+/* Random running pulse (green) */
+@keyframes pulseGreen{
+  0%   { box-shadow: 0 0 0 rgba(51,255,122,0.0); }
+  50%  { box-shadow: 0 0 18px rgba(51,255,122,0.55), 0 0 34px rgba(51,255,122,0.25); }
+  100% { box-shadow: 0 0 0 rgba(51,255,122,0.0); }
+}
+.btnRandom.is-running{
+  animation: pulseGreen .8s ease-in-out infinite;
+}
+
+/* ---------------------------------
+   Tools card
+---------------------------------- */
+.toolsTopRow{
+  display:flex;
+  justify-content:center; /* centred to the card */
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.toolBtn{
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.14);
+  color: #fff;
+  cursor: pointer;
+  font-weight: 900;
+  font-family: "SevenSegment", system-ui, sans-serif;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.toolSpin{
+  width: 64px; /* narrower */
+  font-size: 22px;
+}
+
+.toolDec{
+  background: rgba(255, 60, 60, .22);
+  border-color: rgba(255, 60, 60, .40);
+}
+
+.toolInc{
+  background: rgba(51,255,122,.18);
+  border-color: rgba(51,255,122,.45);
+}
+
+.toolsShiftRow{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.toolReset{
+  width: 100%;
+  height: 54px;
+  font-size: 14px;
+}
+
+/* Reset hover pulse (red) */
+@keyframes pulseRed{
+  0%   { box-shadow: 0 0 0 rgba(255,60,60,0.0); }
+  50%  { box-shadow: 0 0 18px rgba(255,60,60,0.55), 0 0 34px rgba(255,60,60,0.25); }
+  100% { box-shadow: 0 0 0 rgba(255,60,60,0.0); }
+}
+.toolReset:hover{
+  animation: pulseRed .75s ease-in-out infinite;
+  border-color: rgba(255, 60, 60, .55);
+}
+
+/* ---------------------------------
+   Bits grid
+---------------------------------- */
+.bitsWrap{
+  margin-top: 22px;
+}
+
+.bitsGrid{
+  display:grid;
+  gap: 18px;
+  justify-content:center;
+  grid-template-columns: repeat(8, minmax(90px, 1fr));
+  padding-top: 18px;
+}
+
+/* Each bit tile */
+.bit{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap: 10px;
+  padding: 8px 4px;
+  text-align:center;
+}
+
+/* Bulb emoji only (no circle), +25% larger */
+.bulb{
+  width:auto;
+  height:auto;
+  border:none;
+  background:transparent;
+  border-radius:0;
+  box-shadow:none;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  font-size: 33px; /* ~25% up from ~26px */
+  line-height: 1;
+  opacity: .45;
+  filter: grayscale(1);
+}
+
+/* Weight label */
+.bitVal{
+  font-family:"DSEG7ClassicRegular", ui-monospace, monospace;
+  font-size: 28px;          /* keep readable */
+  color: var(--text);
+  opacity: .95;
+  line-height: 1.05;
+  min-height: 32px;
+
+  /* prevent overlap: allow wrapping + constrain */
+  max-width: 90px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align:center;
 }
 
 /* Responsive */
 @media (max-width: 980px){
-  .topGrid{ grid-template-columns: 1fr; }
-  .toolboxDock{ position: static; justify-self: stretch; }
-  body.toolbox-closed .toolboxDock{ display:none; }
-  .bitsGrid{ max-width: 100%; }
+  .wrap{ max-width: 980px; }
+  .bitsGrid{ grid-template-columns: repeat(6, minmax(90px, 1fr)); }
+}
+
+@media (max-width: 720px){
+  .wrap{
+    padding-right: 20px; /* on small screens, don’t reserve fixed space */
+  }
+  .toolbox{
+    right: 10px;
+    width: min(var(--toolbox-width), calc(100vw - 20px));
+  }
+  .binaryValue{
+    max-width: calc(100vw - 40px);
+  }
 }
 
 @media (max-width: 520px){
-  .btn{ min-width: 150px; }
+  .bitsGrid{ grid-template-columns: repeat(4, minmax(90px, 1fr)); }
 }
