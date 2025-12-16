@@ -1,7 +1,20 @@
-/* Font */
+:root{
+  --bg: #1f2027;
+  --panel: #22242d;
+  --panel2: rgba(255,255,255,.04);
+  --text: #e8e8ee;
+  --muted: #a9acb8;
+
+  --accent: #33ff7a;
+  --accent-dim: rgba(51,255,122,.15);
+
+  --line: rgba(255,255,255,.12);
+}
+
 @font-face{
   font-family: "DSEG7ClassicRegular";
   src:
+    url("/fonts/DSEG7Classic-Regular.woff2") format("woff2"),
     url("/fonts/DSEG7Classic-Regular.woff") format("woff"),
     url("/fonts/DSEG7Classic-Regular.ttf") format("truetype");
   font-weight: 400;
@@ -9,8 +22,17 @@
   font-display: swap;
 }
 
-.binaryWrap{
-  padding-top: 8px;
+body{
+  margin:0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.wrap{
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 20px 60px;
 }
 
 .topGrid{
@@ -21,6 +43,7 @@
 }
 
 .readout{
+  background: transparent;
   text-align:center;
   padding: 10px 10px 0;
 }
@@ -41,25 +64,32 @@
   text-shadow: 0 0 18px var(--accent-dim);
 }
 
-.denary{
-  font-size: 70px;  /* smaller than before */
-  line-height: 1;
+.denaryValue{
+  font-size: 72px;
+  line-height: 1.0;
   margin: 6px 0 10px;
 }
 
-.binary{
-  font-size: 54px;  /* smaller than before */
-  letter-spacing: .12em;
-  line-height: 1;
-  margin: 6px 0 16px;
+.binaryValue{
+  font-size: 52px;
+  letter-spacing: .10em;
+  line-height: 1.0;
+  margin: 6px 0 14px;
 }
 
 .controls{
   margin-top: 10px;
   display:flex;
+  flex-direction:column;
+  gap: 10px;
+  align-items:center;
+}
+
+.controlRow{
+  display:flex;
   gap: 12px;
   justify-content:center;
-  flex-wrap:wrap;
+  flex-wrap:nowrap;
 }
 
 .btn{
@@ -68,22 +98,33 @@
   color: #fff;
   padding: 12px 14px;
   border-radius: 12px;
-  font-weight: 700;
+  font-weight: 800;
   cursor: pointer;
   min-width: 160px;
 }
 .btn:active{ transform: translateY(1px); }
+
+.btnPrimary{
+  background: rgba(51,255,122,.18);
+  border-color: rgba(51,255,122,.45);
+  box-shadow: 0 0 0 1px rgba(51,255,122,.10) inset;
+}
+
+.btnSpin{
+  min-width: 120px;
+  font-size: 18px;
+  padding: 12px 10px;
+}
 
 .divider{
   margin-top: 26px;
   border-top: 1px solid var(--line);
 }
 
-/* Right-side cards */
 .panelCol{
   display:flex;
   flex-direction:column;
-  gap: 14px;
+  gap:14px;
 }
 
 .card{
@@ -113,7 +154,7 @@
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap: 10px;
+  gap:10px;
 }
 
 .toggleLabel{
@@ -122,7 +163,6 @@
   font-size: 14px;
 }
 
-/* Switch (reused for mode + bits) */
 .switch{
   position: relative;
   width: 56px;
@@ -131,7 +171,6 @@
   flex: 0 0 auto;
 }
 .switch input{
-  position:absolute;
   opacity:0;
   width:0;
   height:0;
@@ -164,7 +203,6 @@
   background: var(--accent);
 }
 
-/* Bit-width control */
 .bitWidthRow{
   display:grid;
   grid-template-columns: 44px 1fr 44px;
@@ -173,13 +211,13 @@
 }
 
 .miniBtn{
-  height: 44px;
-  width: 44px;
-  border-radius: 12px;
+  height:44px;
+  width:44px;
+  border-radius:12px;
   background: rgba(255,255,255,.06);
   border: 1px solid rgba(255,255,255,.14);
-  color: #fff;
-  cursor: pointer;
+  color:#fff;
+  cursor:pointer;
   font-weight: 900;
   font-size: 18px;
 }
@@ -215,70 +253,83 @@
 }
 .bitInput::-webkit-outer-spin-button,
 .bitInput::-webkit-inner-spin-button{
-  -webkit-appearance:none;
-  margin:0;
+  -webkit-appearance: none;
+  margin: 0;
 }
 
-/* Bits: wrap every 8 (rows built in JS) */
-.bitsRows{
+.actionGrid{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.actionGrid .btn{
+  min-width: 0;
+  width: 100%;
+}
+
+/* -------- Bits grid: wrap every 8, centered when <8, no scrollbar -------- */
+.bits{
   margin-top: 22px;
-  display:flex;
-  flex-direction:column;
+  padding-top: 18px;
+
+  display: grid;
+  grid-template-columns: repeat(8, 92px);
   gap: 18px;
+  justify-content: center;
+
+  width: fit-content;
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
 }
 
-/* A row of up to 8 bits */
-.byteRow{
-  display:flex;
-  justify-content:center;
-  gap: 18px;
-  flex-wrap:nowrap;
-}
-
-/* A single bit */
 .bit{
-  width: 110px;
   display:flex;
   flex-direction:column;
   align-items:center;
   gap: 10px;
-  padding: 6px 4px;
+  padding: 8px 4px;
 }
 
-/* Bulb emoji: bigger */
+/* Bulb: emoji 💡 larger, grey when off, glowing when on */
 .bulb{
-  font-size: 30px;
+  font-size: 28px;            /* bigger bulb */
   line-height: 1;
-  opacity: .20;
-  filter: grayscale(1);
+  filter: grayscale(100%) brightness(.85);
+  opacity: .65;
   transform: translateY(2px);
+  user-select: none;
 }
 .bulb.on{
+  filter: none;
   opacity: 1;
-  filter: grayscale(0);
-  text-shadow: 0 0 16px rgba(255,216,107,.65);
+  text-shadow: 0 0 18px rgba(255, 216, 107, .55);
 }
 
+/* Bit place value */
 .bitVal{
   font-family: "DSEG7ClassicRegular", ui-monospace, monospace;
   font-size: 30px;
   color: var(--text);
-  opacity: .92;
+  opacity: .95;
+  line-height: 1;
   min-height: 34px;
 }
 
-/* Responsiveness */
+/* Per-bit switch */
+.bit .switch{
+  transform: scale(1.05);
+}
+
 @media (max-width: 980px){
   .topGrid{ grid-template-columns: 1fr; }
-  .denary{ font-size: 62px; }
-  .binary{ font-size: 48px; }
-  .bit{ width: 96px; }
+  .denaryValue{ font-size: 64px; }
+  .binaryValue{ font-size: 46px; }
+  .btn{ min-width: 140px; }
 }
 
 @media (max-width: 520px){
-  .denary{ font-size: 56px; }
-  .binary{ font-size: 42px; }
-  .btn{ min-width: 140px; }
-  .byteRow{ gap: 12px; }
-  .bit{ width: 86px; }
+  .bits{
+    grid-template-columns: repeat(4, 92px);
+  }
 }

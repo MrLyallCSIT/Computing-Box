@@ -11,12 +11,6 @@ const { title = "Computing:Box" } = Astro.props;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>{title}</title>
-
-    <!-- Global site styling -->
-    <link rel="stylesheet" href="/styles/site.css" />
-
-    <!-- Page specific styles can be added by each page -->
-    <slot name="head" />
   </head>
 
   <body>
@@ -27,3 +21,15 @@ const { title = "Computing:Box" } = Astro.props;
     <Footer />
   </body>
 </html>
+
+<style>
+  :global(html, body) {
+    height: 100%;
+  }
+  :global(body) {
+    margin: 0;
+  }
+  .page {
+    min-height: calc(100vh - 64px - 120px); /* header + footer-ish */
+  }
+</style>

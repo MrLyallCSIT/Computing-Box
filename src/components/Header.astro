@@ -1,13 +1,57 @@
 <header class="siteHeader">
-  <div class="siteHeader__inner">
-    <a class="brand" href="/">Computing:Box</a>
+  <div class="inner">
+    <div class="brand">
+      <a href="/">Computing:Box</a>
+    </div>
 
     <nav class="nav">
-      <a class="nav__link" href="/binary">Binary</a>
-      <a class="nav__link" href="/hexadecimal">Hexadecimal</a>
-      <a class="nav__link" href="/hex-colours">Hex Colours</a>
-      <a class="nav__link" href="/logic-gates">Logic Gates</a>
-      <a class="nav__link" href="/about">About</a>
+      <a href="/binary">Binary</a>
+      <a href="/hexadecimal">Hexadecimal</a>
+      <a href="/hex-colours">Hex Colours</a>
+      <a href="/logic-gates">Logic Gates</a>
+      <a href="/about">About</a>
     </nav>
   </div>
 </header>
+
+<style>
+  .siteHeader{
+    height: 64px;
+    display:flex;
+    align-items:center;
+    border-bottom: 1px solid rgba(255,255,255,.10);
+    background: rgba(0,0,0,.10);
+    backdrop-filter: blur(8px);
+  }
+  .inner{
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 20px;
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+    gap: 18px;
+  }
+  .brand a{
+    color:#fff;
+    text-decoration:none;
+    font-weight: 800;
+    letter-spacing: .02em;
+  }
+  .nav{
+    display:flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .nav a{
+    color: rgba(255,255,255,.78);
+    text-decoration:none;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing:.02em;
+  }
+  .nav a:hover{
+    color:#fff;
+  }
+</style>
