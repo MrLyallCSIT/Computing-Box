@@ -1,39 +1,37 @@
 ---
-/*
-  Binary | Computing:Box
-  - Toolbox is fixed to the right, and can be collapsed without disappearing.
-  - Main content reserves space when toolbox is open, and recentres when hidden.
-*/
+import BaseLayout from "../layouts/BaseLayout.astro";
 import "../styles/binary.css";
 ---
 
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Binary | Computing:Box</title>
-  </head>
+<BaseLayout title="Binary Simulator">
+  <button id="toolboxToggle" class="toolboxToggle" type="button" aria-expanded="true">
+    <span class="toolboxIcon" aria-hidden="true">🧰</span>
+    <span class="toolboxLabel">TOOLBOX</span>
+  </button>
 
-  <body>
-    <!-- Always-visible toggle button (never hides) -->
-    <button
-      id="toolboxToggle"
-      class="toolboxToggle"
-      type="button"
-      aria-expanded="true"
-      aria-controls="toolboxPanel"
-      title="Toggle toolbox"
-    >
-      <span class="toolboxToggleIcon" aria-hidden="true">🧰</span>
-      <span class="toolboxToggleText">TOOLBOX</span>
-    </button>
+  <main class="wrap">
+    <section class="topGrid">
+      <!-- LEFT -->
+      <div>
+        <div class="readout">
+          <div class="label">Denary</div>
+          <div id="denaryNumber" class="num denaryValue">0</div>
 
-    <!-- Fixed right-side toolbox -->
-    <aside id="toolboxPanel" class="toolbox" aria-label="Toolbox">
-      <div class="toolboxInner">
-        <!-- SETTINGS (renamed from Mode) -->
-        <section class="card">
+          <div class="label">Binary</div>
+          <div id="binaryNumber" class="num binaryValue">0000 0000</div>
+        </div>
+
+        <div class="divider"></div>
+
+        <section class="bitsWrap" aria-label="Bit switches">
+          <div class="bitsGrid" id="bitsGrid"></div>
+        </section>
+      </div>
+
+      <!-- RIGHT TOOLBOX -->
+      <aside id="toolbox" class="panelCol" aria-label="Toolbox">
+        <!-- SETTINGS -->
+        <div class="card">
           <div class="cardTitle">Settings</div>
 
           <div class="toggleRow">
@@ -49,10 +47,8 @@ import "../styles/binary.css";
             Tip: In unsigned binary, all bits represent positive values.
           </div>
 
-          <!-- Bit width moved into Settings -->
           <div class="subCard">
-            <div class="subCardTitle">Bit width</div>
-
+            <div class="subTitle">Bit width</div>
             <div class="bitWidthRow">
               <button class="miniBtn" id="btnBitsDown" type="button" aria-label="Decrease bits">−</button>
 
@@ -74,58 +70,43 @@ import "../styles/binary.css";
               <button class="miniBtn" id="btnBitsUp" type="button" aria-label="Increase bits">+</button>
             </div>
           </div>
-        </section>
+        </div>
 
-        <!-- CUSTOM (Custom Binary / Denary + Random) -->
-        <section class="card">
+        <!-- CUSTOM -->
+        <div class="card">
           <div class="cardTitle">Custom</div>
 
-          <div class="customGrid">
-            <button class="btn btnAccent btnSmall" id="btnCustomBinary" type="button">Custom Binary</button>
-            <button class="btn btnAccent btnSmall" id="btnCustomDenary" type="button">Custom Denary</button>
-
-            <button class="btn btnAccent btnSmall btnRandom" id="btnRandom" type="button">Random</button>
+          <div class="twoBtnRow">
+            <button class="btn btnAccent" id="btnCustomBinary" type="button">Custom Binary</button>
+            <button class="btn btnAccent" id="btnCustomDenary" type="button">Custom Denary</button>
           </div>
 
-          <div class="hint">Random runs briefly then stops automatically.</div>
-        </section>
+          <button class="toolBtn toolWide toolRandom" id="btnRandom" type="button">
+            Random
+          </button>
 
-        <!-- TOOLS (inc/dec centred, shift buttons, reset full width bottom row) -->
-        <section class="card">
+          <div class="hint">Random runs briefly then stops automatically.</div>
+        </div>
+
+        <!-- TOOLS -->
+        <div class="card">
           <div class="cardTitle">Tools</div>
 
           <div class="toolsTopRow">
-            <button class="toolBtn toolSpin toolDec" id="btnDec" type="button" aria-label="Decrement">▼</button>
-            <button class="toolBtn toolSpin toolInc" id="btnInc" type="button" aria-label="Increment">▲</button>
+            <button class="toolBtn toolArrow toolDown" id="btnDec" type="button" aria-label="Decrement">▼</button>
+            <button class="toolBtn toolArrow toolUp" id="btnInc" type="button" aria-label="Increment">▲</button>
           </div>
 
-          <div class="toolsShiftRow">
-            <button class="btn btnSmall" id="btnShiftLeft" type="button">Left Shift</button>
-            <button class="btn btnSmall" id="btnShiftRight" type="button">Right Shift</button>
+          <div class="twoBtnRow">
+            <button class="btn" id="btnShiftLeft" type="button">Left Shift</button>
+            <button class="btn" id="btnShiftRight" type="button">Right Shift</button>
           </div>
 
-          <button class="toolBtn toolReset" id="btnClear" type="button">RESET</button>
-        </section>
-      </div>
-    </aside>
+          <button class="toolBtn toolWide toolReset" id="btnClear" type="button">Reset</button>
+        </div>
+      </aside>
+    </section>
+  </main>
 
-    <!-- Main content -->
-    <main class="wrap">
-      <section class="readout">
-        <div class="label">Denary</div>
-        <div id="denaryNumber" class="num denaryValue">0</div>
-
-        <div class="label">Binary</div>
-        <div id="binaryNumber" class="num binaryValue">0000 0000</div>
-
-        <div class="divider"></div>
-      </section>
-
-      <section class="bitsWrap" aria-label="Bit switches">
-        <div class="bitsGrid" id="bitsGrid"></div>
-      </section>
-    </main>
-
-    <script type="module" src="/src/scripts/binary.js"></script>
-  </body>
-</html>
+  <script type="module" src="/src/scripts/binary.js"></script>
+</BaseLayout>
