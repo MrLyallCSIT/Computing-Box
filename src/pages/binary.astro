@@ -1,122 +1,106 @@
 ---
+import BaseLayout from "../layouts/BaseLayout.astro";
 import "../styles/binary.css";
 
-// keeps JS in src/ and lets Vite/Astro bundle it properly
-const scriptUrl = Astro.resolve("../scripts/binary.js");
+// ✅ Correct Astro v5 way: bundle script from src/ and get its final URL
+import binaryScriptUrl from "../scripts/binary.js?url";
 ---
 
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Binary | Computing:Box</title>
+<BaseLayout title="Binary | Computing:Box">
+  <section class="binary-wrap">
+    <div class="topGrid">
+      <!-- LEFT: readout + main buttons -->
+      <div>
+        <div class="readout">
+          <div class="label">Denary</div>
+          <div id="denaryNumber" class="num denary">0</div>
 
-    <script type="module" src={scriptUrl}></script>
-  </head>
+          <div class="label">Binary</div>
+          <pre id="binaryNumber" class="num binary" aria-label="Binary value">0</pre>
 
-  <body>
-    <!-- Your site header/footer are already present in your layout/screenshots.
-         If this page is wrapped by a global Layout, leave it there.
-         If not, keep your existing header/footer includes here. -->
-
-    <main class="wrap">
-      <section class="topGrid">
-        <!-- LEFT: readout + buttons -->
-        <div>
-          <div class="readout">
-            <div class="label">Denary</div>
-            <div id="denaryNumber" class="num denaryValue">0</div>
-
-            <div class="label">Binary</div>
-            <div id="binaryNumber" class="num binaryValue">0</div>
-
-            <!-- Orange box: custom on one row, shift on next row -->
-            <div class="controls">
-              <div class="controlRow">
-                <button class="btn btnPrimary" id="btnCustomBinary" type="button">Custom Binary</button>
-                <button class="btn btnPrimary" id="btnCustomDenary" type="button">Custom Denary</button>
-              </div>
-              <div class="controlRow">
-                <button class="btn" id="btnShiftLeft" type="button">Left Shift</button>
-                <button class="btn" id="btnShiftRight" type="button">Right Shift</button>
-              </div>
+          <!-- ORANGE: custom + shifts on separate lines -->
+          <div class="controls controls--twoRows">
+            <div class="controlsRow">
+              <button class="btn btn--green" id="btnCustomBinary" type="button">Custom Binary</button>
+              <button class="btn btn--green" id="btnCustomDenary" type="button">Custom Denary</button>
+            </div>
+            <div class="controlsRow">
+              <button class="btn" id="btnShiftLeft" type="button">Left Shift</button>
+              <button class="btn" id="btnShiftRight" type="button">Right Shift</button>
             </div>
           </div>
-
-          <div class="divider"></div>
-
-          <!-- Bits render here -->
-          <section class="bits" id="bitsGrid" aria-label="Bit switches"></section>
         </div>
 
-        <!-- RIGHT: actions + mode + bit width -->
-        <aside class="panelCol">
-          <!-- Red box: move these buttons to the panel -->
-          <div class="card">
-            <div class="cardTitle">Actions</div>
+        <div class="divider"></div>
 
-            <div class="actionGrid">
-              <button class="btn" id="btnClear" type="button">Clear</button>
+        <!-- Bits render here -->
+        <section class="bits" id="bitsGrid" aria-label="Bit switches"></section>
+      </div>
 
-              <button class="btn btnSpin" id="btnDec1" type="button" aria-label="Decrease by 1">−1</button>
-              <button class="btn btnSpin" id="btnInc1" type="button" aria-label="Increase by 1">+1</button>
+      <!-- RIGHT: red buttons go above/below this panel (not in the middle) -->
+      <aside class="panelCol">
+        <div class="card">
+          <div class="cardTitle">Mode</div>
 
-              <button class="btn" id="btnAutoRandom" type="button">Auto Random</button>
-            </div>
+          <div class="toggleRow">
+            <div class="toggleLabel" id="lblUnsigned">Unsigned</div>
 
-            <div class="hint">
-              −1/+1 steps the current value by one. Auto Random runs briefly then stops automatically.
-            </div>
+            <label class="switch" aria-label="Toggle mode">
+              <input id="modeToggle" type="checkbox" />
+              <span class="slider"></span>
+            </label>
+
+            <div class="toggleLabel" id="lblTwos">Two&apos;s complement</div>
           </div>
 
-          <div class="card">
-            <div class="cardTitle">Mode</div>
+          <div class="hint" id="modeHint">
+            Tip: In unsigned binary, all bits represent positive values.
+          </div>
+        </div>
 
-            <div class="toggleRow">
-              <div class="toggleLabel" id="lblUnsigned">Unsigned</div>
+        <!-- RED: extra buttons ABOVE bit width -->
+        <div class="card">
+          <div class="cardTitle">Tools</div>
+          <div class="toolsGrid">
+            <button class="btn" id="btnClear" type="button">Clear</button>
+            <button class="btn btn--spin" id="btnMinus1" type="button">−1</button>
+            <button class="btn btn--spin" id="btnPlus1" type="button">+1</button>
+            <button class="btn" id="btnAutoRandom" type="button">Auto Random</button>
+          </div>
+          <div class="hint">
+            Auto Random runs briefly then stops automatically.
+          </div>
+        </div>
 
-              <label class="switch" aria-label="Toggle mode">
-                <input id="modeToggle" type="checkbox" />
-                <span class="slider"></span>
-              </label>
+        <div class="card">
+          <div class="cardTitle">Bit width</div>
 
-              <div class="toggleLabel" id="lblTwos">Two’s complement</div>
+          <div class="bitWidthRow">
+            <button class="miniBtn" id="btnBitsDown" type="button" aria-label="Decrease bits">−</button>
+
+            <div class="bitInputWrap">
+              <div class="bitInputLabel">Bits</div>
+              <input
+                id="bitsInput"
+                class="bitInput"
+                type="number"
+                inputmode="numeric"
+                min="1"
+                max="64"
+                step="1"
+                value="8"
+                aria-label="Number of bits"
+              />
             </div>
 
-            <div class="hint" id="modeHint">
-              Tip: In unsigned binary, all bits represent positive values.
-            </div>
+            <button class="miniBtn" id="btnBitsUp" type="button" aria-label="Increase bits">+</button>
           </div>
 
-          <div class="card">
-            <div class="cardTitle">Bit width</div>
+          <div class="hint">Minimum 1 bit, maximum 64 bits.</div>
+        </div>
+      </aside>
+    </div>
 
-            <div class="bitWidthRow">
-              <button class="miniBtn" id="btnBitsDown" type="button" aria-label="Decrease bits">−</button>
-
-              <div class="bitInputWrap">
-                <div class="bitInputLabel">Bits</div>
-                <input
-                  id="bitsInput"
-                  class="bitInput"
-                  type="number"
-                  inputmode="numeric"
-                  min="1"
-                  max="64"
-                  step="1"
-                  value="8"
-                  aria-label="Number of bits"
-                />
-              </div>
-
-              <button class="miniBtn" id="btnBitsUp" type="button" aria-label="Increase bits">+</button>
-            </div>
-
-            <div class="hint">Minimum 1 bit, maximum 64 bits.</div>
-          </div>
-        </aside>
-      </section>
-    </main>
-  </body>
-</html>
+    <script type="module" src={binaryScriptUrl}></script>
+  </section>
+</BaseLayout>

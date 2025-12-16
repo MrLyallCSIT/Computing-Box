@@ -1,7 +1,4 @@
 ---
-import Header from "../components/Header.astro";
-import Footer from "../components/Footer.astro";
-
 const { title = "Computing:Box" } = Astro.props;
 ---
 
@@ -11,25 +8,34 @@ const { title = "Computing:Box" } = Astro.props;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>{title}</title>
+    <link rel="stylesheet" href="/src/styles/site.css" />
   </head>
 
   <body>
-    <Header />
-    <main class="page">
+    <header class="site-header">
+      <div class="site-header__inner">
+        <div class="brand">Computing:Box</div>
+
+        <nav class="nav">
+          <a class="nav__link" href="/binary">Binary</a>
+          <a class="nav__link" href="/hexadecimal">Hexadecimal</a>
+          <a class="nav__link" href="/hex-colours">Hex Colours</a>
+          <a class="nav__link" href="/logic-gates">Logic Gates</a>
+          <a class="nav__link" href="/about">About</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="site-main">
       <slot />
     </main>
-    <Footer />
+
+    <footer class="site-footer">
+      <div class="site-footer__inner">
+        <div>Computer Science Concept Simulators</div>
+        <div>© 2025 Computing:Box · Created with 💜 by Mr Lyall</div>
+        <div>Powered by ADCM Networks</div>
+      </div>
+    </footer>
   </body>
 </html>
-
-<style>
-  :global(html, body) {
-    height: 100%;
-  }
-  :global(body) {
-    margin: 0;
-  }
-  .page {
-    min-height: calc(100vh - 64px - 120px); /* header + footer-ish */
-  }
-</style>
