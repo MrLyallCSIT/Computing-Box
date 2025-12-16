@@ -1,6 +1,6 @@
 // src/scripts/binary.js
 // Computing:Box — Binary page logic (Unsigned + Two's Complement)
-// NOTE: This file is written to match the IDs/classes in your current binary.astro HTML.
+// Matches IDs/classes in src/pages/binary.astro
 
 (() => {
   /* -----------------------------
@@ -13,8 +13,6 @@
 
   const modeToggle = document.getElementById("modeToggle");
   const modeHint = document.getElementById("modeHint");
-  const lblUnsigned = document.getElementById("lblUnsigned");
-  const lblTwos = document.getElementById("lblTwos");
 
   const btnCustomBinary = document.getElementById("btnCustomBinary");
   const btnCustomDenary = document.getElementById("btnCustomDenary");
@@ -29,6 +27,9 @@
   const btnBitsUp = document.getElementById("btnBitsUp");
   const btnBitsDown = document.getElementById("btnBitsDown");
 
+  const toolboxToggle = document.getElementById("toolboxToggle");
+  const toolboxPanel = document.getElementById("toolboxPanel");
+
   /* -----------------------------
      STATE
   ----------------------------- */
@@ -39,6 +40,10 @@
 
   // Random run timer (brief)
   let randomTimer = null;
+
+  // Dynamic wrapping for the big binary display
+  // "nibbles per row" recalculated on resize
+  let nibblesPerRow = 2; // default for small widths
 
   /* -----------------------------
      HELPERS
@@ -81,7 +86,8 @@
   }
 
   function unsignedBigIntToBits(vUnsigned) {
-    const v = ((vUnsigned % unsignedMaxExclusive(bitCount)) + unsignedMaxExclusive(bitCount)) % unsignedMaxExclusive(bitCount);
+    const span = unsignedMaxExclusive(bitCount);
+    const v = ((vUnsigned % span) + span) % span;
     for (let i = 0; i < bitCount; i++) {
       bits[i] = ((v >> BigInt(i)) & 1n) === 1n;
     }
@@ -91,46 +97,75 @@
     const u = bitsToUnsignedBigInt();
     const signBit = bits[bitCount - 1] === true;
     if (!signBit) return u;
-
-    // negative: u - 2^n
     return u - pow2Big(bitCount);
   }
 
   function signedBigIntToBitsTwos(vSigned) {
-    // wrap into range [-2^(n-1), 2^(n-1)-1]
-    const min = twosMin(bitCount);
-    const max = twosMax(bitCount);
     const span = pow2Big(bitCount); // 2^n
-
     let v = vSigned;
-
-    // wrap using modular arithmetic on signed domain
-    // Convert to unsigned representative: v mod 2^n
     v = ((v % span) + span) % span;
-
     unsignedBigIntToBits(v);
-    // labels/denary will show signed later
-    // (No further action needed here)
-  }
-
-  function formatBinaryGrouped() {
-    // MSB..LSB with a space every 4 bits (matches your screenshot 0000 0000)
-    let s = "";
-    for (let i = bitCount - 1; i >= 0; i--) {
-      s += bits[i] ? "1" : "0";
-      const posFromRight = (bitCount - i);
-      if (i !== 0 && posFromRight % 4 === 0) s += " ";
-    }
-    return s;
   }
 
   function updateModeHint() {
     if (!modeHint) return;
     if (isTwosMode()) {
-      modeHint.textContent = "Tip: In two’s complement, the left-most bit (MSB) represents a negative value.";
+      modeHint.textContent =
+        "Tip: In two’s complement, the left-most bit (MSB) represents a negative value.";
     } else {
-      modeHint.textContent = "Tip: In unsigned binary, all bits represent positive values.";
+      modeHint.textContent =
+        "Tip: In unsigned binary, all bits represent positive values.";
     }
+  }
+
+  /* -----------------------------
+     BIG BINARY DISPLAY WRAP
+     - Determines how many nibbles (4 bits) fit per row
+     - Recalculates on window resize
+  ----------------------------- */
+  function computeNibblesPerRow() {
+    if (!binaryEl) return;
+
+    // available width for the binary number = element width
+    const w = binaryEl.getBoundingClientRect().width;
+
+    // Approximate "nibble width" in pixels:
+    // 4 digits + a space; use font size and letter-spacing to estimate.
+    // This doesn't need to be perfect, just stable and responsive.
+    const style = window.getComputedStyle(binaryEl);
+    const fontSize = parseFloat(style.fontSize || "40"); // px
+    const letterSpacing = parseFloat(style.letterSpacing || "0");
+    const digitW = fontSize * 0.62 + letterSpacing; // rough digit width
+    const nibbleW = digitW * 4 + digitW * 1.2; // include gap between nibbles
+
+    // Always allow at least 2 nibbles per row
+    const fit = Math.max(2, Math.floor(w / nibbleW));
+    nibblesPerRow = fit;
+  }
+
+  function formatBinaryGroupedWrapped() {
+    // Build MSB..LSB and group into nibbles
+    const nibbles = [];
+    let current = "";
+
+    for (let i = bitCount - 1; i >= 0; i--) {
+      current += bits[i] ? "1" : "0";
+      const posFromRight = (bitCount - i);
+      if (posFromRight % 4 === 0 || i === 0) {
+        // if last group is partial, left-pad inside the group
+        if (current.length < 4) current = current.padStart(4, "0");
+        nibbles.push(current);
+        current = "";
+      }
+    }
+
+    // Now wrap nibbles into lines
+    const lines = [];
+    for (let i = 0; i < nibbles.length; i += nibblesPerRow) {
+      lines.push(nibbles.slice(i, i + nibblesPerRow).join(" "));
+    }
+
+    return lines.join("\n");
   }
 
   /* -----------------------------
@@ -140,28 +175,18 @@
     bitCount = clampInt(count, 1, 64);
     if (bitsInput) bitsInput.value = String(bitCount);
 
-    // reset bits array size, preserve existing LSBs where possible
+    // preserve existing LSBs where possible
     const oldBits = bits.slice();
     bits = new Array(bitCount).fill(false);
     for (let i = 0; i < Math.min(oldBits.length, bitCount); i++) bits[i] = oldBits[i];
 
     bitsGrid.innerHTML = "";
 
-    // If less than 8 bits, centre nicely using your CSS helper
-    bitsGrid.classList.toggle("bitsFew", bitCount < 8);
-    if (bitCount < 8) {
-      bitsGrid.style.setProperty("--cols", String(bitCount));
-    } else {
-      bitsGrid.style.removeProperty("--cols");
-    }
-
     // Render MSB..LSB left-to-right
     for (let i = bitCount - 1; i >= 0; i--) {
       const bitEl = document.createElement("div");
       bitEl.className = "bit";
 
-      // IMPORTANT: We render the bulb as an emoji with NO circle/ring.
-      // We do not rely on the .bulb CSS ring/background at all.
       bitEl.innerHTML = `
         <div class="bulb" id="bulb-${i}" aria-hidden="true">💡</div>
         <div class="bitVal" id="bitLabel-${i}"></div>
@@ -183,36 +208,13 @@
       });
     });
 
-    // Force the bulb to be "just the emoji" (removes the circle even if CSS adds it)
-    for (let i = 0; i < bitCount; i++) {
-      const bulb = document.getElementById(`bulb-${i}`);
-      if (!bulb) continue;
-
-      // Strip the ring/circle coming from CSS
-      bulb.style.width = "auto";
-      bulb.style.height = "auto";
-      bulb.style.border = "none";
-      bulb.style.background = "transparent";
-      bulb.style.borderRadius = "0";
-      bulb.style.boxShadow = "none";
-      bulb.style.opacity = "0.45";
-      bulb.style.fontSize = "26px";
-      bulb.style.lineHeight = "1";
-      bulb.style.display = "flex";
-      bulb.style.alignItems = "center";
-      bulb.style.justifyContent = "center";
-      bulb.style.filter = "grayscale(1)";
-      bulb.textContent = "💡";
-    }
-
     updateUI();
   }
 
   /* -----------------------------
-     UI UPDATE (READOUT + LABELS + BULBS + SWITCHES)
+     UI UPDATE
   ----------------------------- */
   function updateBitLabels() {
-    // Show weights under each bit.
     // Unsigned: 2^i
     // Two's: MSB is -2^(n-1), others are 2^i
     for (let i = 0; i < bitCount; i++) {
@@ -235,14 +237,11 @@
   }
 
   function updateBulbs() {
-    // Bulbs should ALWAYS reflect bits, regardless of mode.
     for (let i = 0; i < bitCount; i++) {
       const bulb = document.getElementById(`bulb-${i}`);
       if (!bulb) continue;
 
       const on = bits[i] === true;
-
-      // Make it look "lit" when on (no circle, just glow)
       if (on) {
         bulb.style.opacity = "1";
         bulb.style.filter = "grayscale(0)";
@@ -266,7 +265,9 @@
       denaryEl.textContent = unsigned.toString();
     }
 
-    binaryEl.textContent = formatBinaryGrouped();
+    // Ensure nibble wrapping is up-to-date
+    computeNibblesPerRow();
+    binaryEl.textContent = formatBinaryGroupedWrapped();
   }
 
   function updateUI() {
@@ -284,11 +285,8 @@
     const clean = String(binStr ?? "").replace(/\s+/g, "");
     if (!/^[01]+$/.test(clean)) return false;
 
-    // Use rightmost bitCount bits; left pad with 0
     const padded = clean.slice(-bitCount).padStart(bitCount, "0");
-
     for (let i = 0; i < bitCount; i++) {
-      // padded is MSB..LSB, bits[] is LSB..MSB
       const charFromRight = padded[padded.length - 1 - i];
       bits[i] = charFromRight === "1";
     }
@@ -304,10 +302,8 @@
     const raw = String(vStr ?? "").trim();
     if (!raw) return false;
 
-    // BigInt parse (supports negatives)
     let v;
     try {
-      // Allow normal integers only
       if (!/^-?\d+$/.test(raw)) return false;
       v = BigInt(raw);
     } catch {
@@ -315,17 +311,13 @@
     }
 
     if (isTwosMode()) {
-      // Clamp to representable range
       const min = twosMin(bitCount);
       const max = twosMax(bitCount);
       if (v < min || v > max) return false;
-
       signedBigIntToBitsTwos(v);
     } else {
-      // Unsigned only
       if (v < 0n) return false;
       if (v > unsignedMaxValue(bitCount)) return false;
-
       unsignedBigIntToBits(v);
     }
 
@@ -337,19 +329,13 @@
      SHIFTS
   ----------------------------- */
   function shiftLeft() {
-    // logical left shift: bits move to higher index; LSB becomes 0
-    for (let i = bitCount - 1; i >= 1; i--) {
-      bits[i] = bits[i - 1];
-    }
+    for (let i = bitCount - 1; i >= 1; i--) bits[i] = bits[i - 1];
     bits[0] = false;
     updateUI();
   }
 
   function shiftRight() {
-    // logical right shift: bits move to lower index; MSB becomes 0
-    for (let i = 0; i < bitCount - 1; i++) {
-      bits[i] = bits[i + 1];
-    }
+    for (let i = 0; i < bitCount - 1; i++) bits[i] = bits[i + 1];
     bits[bitCount - 1] = false;
     updateUI();
   }
@@ -367,7 +353,7 @@
       const min = twosMin(bitCount);
       const max = twosMax(bitCount);
       let v = bitsToSignedBigIntTwos() + 1n;
-      if (v > max) v = min; // wrap
+      if (v > max) v = min;
       signedBigIntToBitsTwos(v);
     } else {
       const span = unsignedMaxExclusive(bitCount);
@@ -382,7 +368,7 @@
       const min = twosMin(bitCount);
       const max = twosMax(bitCount);
       let v = bitsToSignedBigIntTwos() - 1n;
-      if (v < min) v = max; // wrap
+      if (v < min) v = max;
       signedBigIntToBitsTwos(v);
     } else {
       const span = unsignedMaxExclusive(bitCount);
@@ -393,26 +379,21 @@
   }
 
   /* -----------------------------
-     RANDOM (FIXED: NO BigInt->Number Math.min)
+     RANDOM (BigInt-safe)
   ----------------------------- */
   function cryptoRandomBigInt(maxExclusive) {
-    // returns 0 <= x < maxExclusive
     if (maxExclusive <= 0n) return 0n;
 
     const bitLen = maxExclusive.toString(2).length;
     const byteLen = Math.ceil(bitLen / 8);
 
-    // Rejection sampling
     while (true) {
       const bytes = new Uint8Array(byteLen);
       crypto.getRandomValues(bytes);
 
       let x = 0n;
-      for (const b of bytes) {
-        x = (x << 8n) | BigInt(b);
-      }
+      for (const b of bytes) x = (x << 8n) | BigInt(b);
 
-      // mask down to bitLen to reduce rejections slightly
       const extraBits = BigInt(byteLen * 8 - bitLen);
       if (extraBits > 0n) x = x >> extraBits;
 
@@ -421,27 +402,20 @@
   }
 
   function setRandomOnce() {
-    if (isTwosMode()) {
-      const span = unsignedMaxExclusive(bitCount); // 2^n
-      const u = cryptoRandomBigInt(span); // 0..2^n-1
-      unsignedBigIntToBits(u);
-    } else {
-      const span = unsignedMaxExclusive(bitCount);
-      const u = cryptoRandomBigInt(span);
-      unsignedBigIntToBits(u);
-    }
+    const span = unsignedMaxExclusive(bitCount);
+    const u = cryptoRandomBigInt(span);
+    unsignedBigIntToBits(u);
     updateUI();
   }
 
   function runRandomBriefly() {
-    // stop any existing run
     if (randomTimer) {
       clearInterval(randomTimer);
       randomTimer = null;
     }
 
     const start = Date.now();
-    const durationMs = 900; // brief run then stop
+    const durationMs = 900;
     const tickMs = 80;
 
     randomTimer = setInterval(() => {
@@ -454,7 +428,7 @@
   }
 
   /* -----------------------------
-     BIT WIDTH CONTROLS
+     BIT WIDTH
   ----------------------------- */
   function setBitWidth(n) {
     const v = clampInt(n, 1, 64);
@@ -462,22 +436,17 @@
   }
 
   /* -----------------------------
+     TOOLBOX TOGGLE
+  ----------------------------- */
+  function setToolboxCollapsed(collapsed) {
+    document.body.classList.toggle("toolbox-collapsed", collapsed);
+    toolboxToggle?.setAttribute("aria-expanded", String(!collapsed));
+  }
+
+  /* -----------------------------
      EVENTS
   ----------------------------- */
-
-    // Collapsible right panel
-  const sidePanel = document.getElementById("sidePanel");
-  const btnPanelToggle = document.getElementById("btnPanelToggle");
-
-  btnPanelToggle?.addEventListener("click", () => {
-    sidePanel?.classList.toggle("isCollapsed");
-    // flip the chevron
-    btnPanelToggle.textContent = sidePanel?.classList.contains("isCollapsed") ? "❮" : "❯";
-  });
-
-  modeToggle?.addEventListener("change", () => {
-    updateUI();
-  });
+  modeToggle?.addEventListener("change", () => updateUI());
 
   btnCustomBinary?.addEventListener("click", () => {
     const v = prompt(`Enter binary (spaces allowed). Current width: ${bitCount} bits`);
@@ -507,14 +476,25 @@
   btnBitsUp?.addEventListener("click", () => setBitWidth(bitCount + 1));
   btnBitsDown?.addEventListener("click", () => setBitWidth(bitCount - 1));
 
-  bitsInput?.addEventListener("change", () => {
-    setBitWidth(Number(bitsInput.value));
+  bitsInput?.addEventListener("change", () => setBitWidth(Number(bitsInput.value)));
+
+  toolboxToggle?.addEventListener("click", () => {
+    const collapsed = document.body.classList.contains("toolbox-collapsed");
+    setToolboxCollapsed(!collapsed);
+    // ensure binary re-wraps after layout change
+    requestAnimationFrame(() => updateReadout());
+  });
+
+  // Recompute nibble wrapping on resize
+  window.addEventListener("resize", () => {
+    // throttled via rAF to avoid spam
+    requestAnimationFrame(() => updateReadout());
   });
 
   /* -----------------------------
      INIT
   ----------------------------- */
   updateModeHint();
+  setToolboxCollapsed(false);
   buildBits(bitCount);
 })();
-
