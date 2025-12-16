@@ -1,412 +1,326 @@
+/* Binary page styles (moved OUT of binary.astro) */
+
 :root{
-  --bg: #1f2027;
-  --panel2: rgba(255,255,255,.04);
-  --text: #e8e8ee;
-  --muted: #a9acb8;
-  --accent: #33ff7a;
-  --accent-dim: rgba(51,255,122,.15);
-  --line: rgba(255,255,255,.12);
-}
-
-/* NUMBERS font */
-@font-face{
-  font-family: "DSEG7ClassicRegular";
-  src:
-    url("/fonts/DSEG7Classic-Regular.woff") format("woff"),
-    url("/fonts/DSEG7Classic-Regular.ttf") format("truetype");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* TEXT font */
-@font-face{
-  font-family: "SevenSegment";
-  src:
-    url("/fonts/Seven-Segment.woff2") format("woff2"),
-    url("/fonts/Seven-Segment.woff") format("woff");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-body{
-  margin:0;
-  font-family: "SevenSegment", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  background: var(--bg);
-  color: var(--text);
+  --panel-w: 360px;
+  --gap: 22px;
 }
 
 .wrap{
   max-width: 1400px;
   margin: 0 auto;
-  padding: 26px 22px 60px;
+  padding: 26px 20px 48px;
+  position: relative;
 }
 
-/* MAIN GRID */
 .topGrid{
-  display:grid;
-  grid-template-columns: 1fr 360px;
-  gap: 28px;
-  align-items:start;
+  display: grid;
+  grid-template-columns: 1fr var(--panel-w);
+  gap: var(--gap);
+  align-items: start;
 }
 
-/* Toolbox toggle BELOW navbar */
-.toolboxToggle{
-  position: sticky;
-  top: calc(var(--nav-height) + 10px);
-  z-index: 900;
-  float: right;
-
-  display:inline-flex;
-  align-items:center;
-  gap: 10px;
-
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.14);
-  color: #fff;
-  padding: 10px 14px;
-  border-radius: 12px;
-  font-weight: 900;
-  cursor: pointer;
-  letter-spacing: .10em;
-  text-transform: uppercase;
-  font-size: 12px;
+/* When toolbox is hidden, reclaim space + centre content */
+body.toolboxClosed .topGrid{
+  grid-template-columns: 1fr;
 }
-.toolboxToggle:hover{ background: rgba(255,255,255,.09); }
+body.toolboxClosed #toolboxPanel{
+  display: none;
+}
 
-/* Readout */
+.mainCol{
+  min-width: 0;
+}
+
 .readout{
-  text-align:center;
-  padding: 10px 10px 0;
+  text-align: center;
+  margin-top: 8px;
 }
 
 .label{
-  letter-spacing: .18em;
-  font-weight: 900;
-  color: var(--muted);
+  opacity: .8;
+  letter-spacing: .12em;
   text-transform: uppercase;
-  font-size: 13px;
-  margin-top: 10px;
+  font-size: 12px;
 }
 
+/* IMPORTANT: allow shrinking below 4 bits (no min-width!) */
 .num{
-  font-family: "DSEG7ClassicRegular", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-weight: 400;
-  color: var(--accent);
-  text-shadow: 0 0 18px var(--accent-dim);
+  display: inline-block;
+  width: fit-content;
+  max-width: 100%;
+  white-space: pre-line; /* allows JS \n wraps */
+  letter-spacing: 2px;
 }
 
 .denaryValue{
-  font-size: 52px;
-  line-height: 1.0;
+  font-size: 54px;
   margin: 6px 0 10px;
 }
 
 .binaryValue{
-  font-size: 46px;
-  letter-spacing: .14em;
-  line-height: 1.05;
-  margin: 6px 0 14px;
-  white-space: pre-wrap;
-  word-break: break-word;
+  font-size: 56px;
+  margin: 4px 0 18px;
 }
 
 .divider{
-  margin-top: 26px;
-  border-top: 1px solid var(--line);
+  height: 1px;
+  background: rgba(255,255,255,.10);
+  margin: 14px auto 24px;
+  max-width: 900px;
 }
 
-/* RIGHT COLUMN */
+.bitsWrap{
+  padding-top: 6px;
+}
+
+.bitsGrid{
+  display: grid;
+  gap: 24px;
+  justify-content: center;
+}
+
+/* Default: a single row of bits (will wrap automatically as bit count grows) */
+.bitsGrid{
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.bitsGrid.bitsFew{
+  justify-content: center;
+}
+
+/* Bit tile */
+.bit{
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+}
+
+.bulb{
+  font-size: 32px; /* JS also bumps this */
+  line-height: 1;
+  opacity: .45;
+}
+
+.bitVal{
+  font-size: 22px;
+  line-height: 1.05;
+  text-align: center;
+  white-space: nowrap; /* keep -128 on one line */
+}
+
+/* Switch (existing classes assumed) */
+.switch{
+  position: relative;
+  display: inline-block;
+  width: 52px;
+  height: 28px;
+}
+.switch input{ display:none; }
+.slider{
+  position:absolute;
+  inset:0;
+  border-radius:999px;
+  background: rgba(255,255,255,.18);
+  border: 1px solid rgba(255,255,255,.14);
+}
+.slider:before{
+  content:"";
+  position:absolute;
+  height: 22px;
+  width: 22px;
+  left: 3px;
+  top: 2.5px;
+  border-radius: 999px;
+  background: #fff;
+  transition: transform .18s ease;
+}
+.switch input:checked + .slider:before{
+  transform: translateX(22px);
+}
+
+/* Toolbox toggle button */
+.toolboxToggle{
+  position: absolute;
+  right: 20px;
+  top: 18px;
+  z-index: 20;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.92);
+  cursor: pointer;
+}
+.toolboxText{
+  letter-spacing: .12em;
+  font-weight: 900;
+}
+
+/* Toolbox panel */
 .panelCol{
-  display:flex;
-  flex-direction:column;
-  gap: 14px;
+  position: sticky;
+  top: calc(var(--nav-h, 72px) + 18px);
+  align-self: start;
+  display: grid;
+  gap: 16px;
 }
 
+/* Cards */
 .card{
-  background: var(--panel2);
-  border: 1px solid rgba(255,255,255,.10);
-  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 16px;
+  background: rgba(255,255,255,.05);
   padding: 14px;
 }
-
 .cardTitle{
-  letter-spacing: .18em;
-  font-weight: 900;
-  color: var(--muted);
+  opacity: .8;
+  letter-spacing: .14em;
   text-transform: uppercase;
   font-size: 12px;
-  margin: 0 0 10px;
+  margin-bottom: 10px;
+}
+
+.hint{
+  opacity: .7;
+  font-size: 11px;
+  margin-top: 10px;
+  line-height: 1.35;
+}
+
+/* Keep mode labels on one line */
+.toggleRow{
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 10px;
+  align-items: center;
+}
+.toggleLabel{
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .subCard{
   margin-top: 12px;
-  background: rgba(255,255,255,.04);
   border: 1px solid rgba(255,255,255,.10);
-  border-radius: 12px;
+  border-radius: 14px;
+  background: rgba(0,0,0,.12);
   padding: 12px;
 }
-
 .subTitle{
-  letter-spacing: .18em;
-  font-weight: 900;
-  color: var(--muted);
+  opacity: .8;
+  letter-spacing: .14em;
   text-transform: uppercase;
   font-size: 11px;
-  margin: 0 0 10px;
-}
-
-.hint{
-  color: var(--muted);
-  font-size: 12px;
-  margin-top: 8px;
-  line-height: 1.35;
-}
-
-.toggleRow{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap: 10px;
-}
-
-.toggleLabel{
-  color: var(--text);
-  font-weight: 900;
-  font-size: 13px;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-}
-
-/* Switch */
-.switch{
-  position: relative;
-  width: 56px;
-  height: 34px;
-  display:inline-block;
-  flex: 0 0 auto;
-}
-.switch input{ opacity:0; width:0; height:0; }
-.slider{
-  position:absolute;
-  inset:0;
-  background: rgba(255,255,255,.10);
-  border: 1px solid rgba(255,255,255,.14);
-  border-radius: 999px;
-  transition: .18s ease;
-}
-.slider::before{
-  content:"";
-  position:absolute;
-  height: 28px;
-  width: 28px;
-  left: 3px;
-  top: 2px;
-  background: rgba(255,255,255,.92);
-  border-radius: 50%;
-  transition: .18s ease;
-}
-.switch input:checked + .slider{
-  background: rgba(51,255,122,.20);
-  border-color: rgba(51,255,122,.55);
-}
-.switch input:checked + .slider::before{
-  transform: translateX(22px);
-  background: var(--accent);
-}
-
-/* Buttons */
-.btn{
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.14);
-  color: #fff;
-  padding: 12px 14px;
-  border-radius: 12px;
-  font-weight: 900;
-  cursor: pointer;
-  letter-spacing: .10em;
-  text-transform: uppercase;
-  font-size: 12px;
-}
-.btn:active{ transform: translateY(1px); }
-
-.btnAccent{
-  background: rgba(51,255,122,.18);
-  border-color: rgba(51,255,122,.45);
-}
-
-.customRow{
-  display:grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
   margin-bottom: 10px;
 }
 
-.btnRandom{
-  width: 100%;
-}
-
-/* Random pulse ONLY while running */
-@keyframes pulseGreen {
-  0%   { box-shadow: 0 0 0 rgba(51,255,122,0); }
-  50%  { box-shadow: 0 0 18px rgba(51,255,122,.55), 0 0 28px rgba(51,255,122,.25); }
-  100% { box-shadow: 0 0 0 rgba(51,255,122,0); }
-}
-.btnRandom.is-running{
-  animation: pulseGreen 0.9s ease-in-out infinite;
-}
-
-/* Tools */
-.toolRowCenter{
-  display:flex;
-  justify-content:center;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-
-.toolBtn{
-  height: 48px;
-  width: 66px;
-  border-radius: 12px;
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.14);
-  color: #fff;
-  cursor: pointer;
-  font-weight: 900;
-  font-size: 22px;
-}
-
-.toolDec{
-  background: rgba(255,0,0,.18);
-  border-color: rgba(255,0,0,.35);
-}
-.toolInc{
-  background: rgba(51,255,122,.18);
-  border-color: rgba(51,255,122,.35);
-}
-
-.shiftRow{
-  display:grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-
-/* Reset full-width + red hover pulse/background */
-.btnReset{
-  width: 100%;
-}
-
-@keyframes pulseRedBg {
-  0%   { box-shadow: 0 0 0 rgba(255,0,0,0); background: rgba(255,0,0,.14); }
-  50%  { box-shadow: 0 0 18px rgba(255,0,0,.45), 0 0 28px rgba(255,0,0,.20); background: rgba(255,0,0,.28); }
-  100% { box-shadow: 0 0 0 rgba(255,0,0,0); background: rgba(255,0,0,.14); }
-}
-.btnReset:hover{
-  border-color: rgba(255,0,0,.45);
-  animation: pulseRedBg 0.9s ease-in-out infinite;
-}
-
-/* Bit width control */
 .bitWidthRow{
-  display:grid;
+  display: grid;
   grid-template-columns: 44px 1fr 44px;
   gap: 10px;
-  align-items:center;
-}
-
-.miniBtn{
-  height:44px;
-  width:44px;
-  border-radius:12px;
-  background:rgba(255,255,255,.06);
-  border:1px solid rgba(255,255,255,.14);
-  color:#fff;
-  cursor:pointer;
-  font-weight:900;
-  font-size:18px;
+  align-items: center;
 }
 
 .bitInputWrap{
-  background:rgba(255,255,255,.06);
-  border:1px solid rgba(255,255,255,.14);
-  border-radius:12px;
-  padding:10px 12px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 12px;
+  background: rgba(255,255,255,.04);
 }
 .bitInputLabel{
-  color:var(--muted);
-  font-size:12px;
-  font-weight:900;
-  letter-spacing:.18em;
-  text-transform:uppercase;
-}
-.bitInput{
-  width: 86px;
-  text-align:right;
-  background:transparent;
-  border:none;
-  outline:none;
-  color:var(--accent);
-  font-family:"DSEG7ClassicRegular", ui-monospace, monospace;
-  font-size:28px;
-}
-.bitInput::-webkit-outer-spin-button,
-.bitInput::-webkit-inner-spin-button{
-  -webkit-appearance:none;
-  margin:0;
-}
-
-/* Bits grid */
-.bitsWrap{ margin-top: 22px; }
-
-.bitsGrid{
-  display:grid;
-  gap: 18px;
-  justify-content:center;
-  grid-template-columns: repeat(8, minmax(92px, 1fr));
-  padding-top: 18px;
-}
-
-.bit{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap: 10px;
-  padding: 8px 4px;
-  text-align:center;
-}
-
-/* Bulb 25% bigger */
-.bulb{
-  font-size: 32px; /* was ~26 */
-  line-height: 1;
-  opacity: .45;
-  filter: grayscale(1);
-}
-.bulb.on{
-  opacity: 1;
-  filter: grayscale(0);
-  text-shadow: 0 0 14px rgba(255,216,107,.75), 0 0 26px rgba(255,216,107,.45);
-}
-
-.bitVal{
-  font-family:"DSEG7ClassicRegular", ui-monospace, monospace;
-  font-size: 28px;
-  color: var(--text);
-  opacity: .95;
-  line-height: 1.05;
-  min-height: 32px;
-
-  /* prevent “run together” when huge values */
+  opacity: .75;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  font-size: 11px;
   white-space: nowrap;
 }
+.bitInput{
+  width: 100%;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: inherit;
+  font-size: 20px;
+  text-align: right;
+}
 
-@media (max-width: 980px){
-  .topGrid{ grid-template-columns: 1fr; }
-  .toolboxToggle{ float:none; }
+.miniBtn{
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.9);
+  font-size: 18px;
+  cursor: pointer;
+}
+
+/* Buttons */
+.controlsRow{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.btn{
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.92);
+  padding: 12px 12px;
+  font-weight: 800;
+  letter-spacing: .10em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.btnWide{ width: 100%; }
+
+.btnAccent{
+  background: rgba(0,255,140,.12);
+  border-color: rgba(0,255,140,.22);
+}
+
+.toolRowCentered{
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin: 10px 0 12px;
+}
+
+.toolBtn{
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.92);
+  font-size: 18px;
+  cursor: pointer;
+}
+.toolDec{ background: rgba(255,0,0,.14); border-color: rgba(255,0,0,.20); }
+.toolInc{ background: rgba(0,255,140,.14); border-color: rgba(0,255,140,.20); }
+
+.toolRow2{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+/* Reset stays white text */
+.btnReset{
+  color: rgba(255,255,255,.92);
 }
