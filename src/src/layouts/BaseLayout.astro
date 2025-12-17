@@ -1,0 +1,118 @@
+---
+const { title = "Computing:Box" } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>{title}</title>
+
+    <style>
+      :root{
+        --nav-h: 108px; /* 3x-ish height */
+        --bg: #1f2027;
+        --text: #e8e8ee;
+        --muted: #a9acb8;
+        --line: rgba(255,255,255,.10);
+      }
+
+      body{
+        margin:0;
+        background:var(--bg);
+        color:var(--text);
+      }
+
+      .siteNav{
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        height: var(--nav-h);
+        background: rgba(0,0,0,.10);
+        border-bottom: 1px solid var(--line);
+        backdrop-filter: blur(8px);
+      }
+
+      .navInner{
+        height: 100%;
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+      }
+
+      .brand{
+        display:flex;
+        align-items:center;
+        gap:12px;
+        text-decoration:none;
+        color:var(--text);
+      }
+
+      .brandLogo{
+        width: 2em;
+        height: 2em;
+        image-rendering: pixelated;
+      }
+
+      .brandName{
+        letter-spacing: .12em;
+        font-weight: 900;
+        text-transform: uppercase;
+        font-size: 18px;
+      }
+
+      .navLinks{
+        display:flex;
+        align-items:center;
+        gap:18px;
+        flex-wrap:wrap;
+      }
+
+      .navLinks a{
+        color: var(--muted);
+        text-decoration: none;
+        font-weight: 800;
+        letter-spacing: .12em;
+        font-size: 16px;
+        text-transform: uppercase;
+      }
+
+      .navLinks a:hover{
+        color: var(--text);
+      }
+
+      .pageWrap{
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+    </style>
+  </head>
+
+  <body>
+    <header class="siteNav">
+      <div class="navInner">
+        <a class="brand" href="/">
+          <img class="brandLogo" src="/images/computing-box-logo.svg" alt="Computing:Box logo" />
+          <span class="brandName">COMPUTING:BOX</span>
+        </a>
+
+        <nav class="navLinks" aria-label="Site navigation">
+          <a href="/about">ABOUT</a>
+          <a href="/binary">BINARY</a>
+          <a href="/hexadecimal">HEXADECIMAL</a>
+          <a href="/hex-colours">HEX COLOURS</a>
+          <a href="/logic-gates">LOGIC GATES</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="pageWrap">
+      <slot />
+    </main>
+  </body>
+</html>

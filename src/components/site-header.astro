@@ -1,0 +1,25 @@
+---
+const nav = [
+  { href: "/about", label: "About" },
+  { href: "/binary", label: "Binary" },
+  { href: "/hexadecimal", label: "Hexadecimal" },
+  { href: "/hex-colours", label: "Hex Colours" },
+  { href: "/logic-gates", label: "Logic Gates" },
+];
+---
+<header class="site-header">
+  <div class="site-header__inner">
+    <a class="site-header__brand" href="/" aria-label="Computing:Box home">
+      <img class="site-header__logo" src="/img/logo.png" alt="" width="26" height="26" />
+      <span class="site-header__name">COMPUTING:BOX</span>
+    </a>
+
+    <nav class="site-header__nav" aria-label="Primary">
+      {nav.map((i) => (
+        <a class="site-header__link" href={i.href}>
+          {i.label.toUpperCase()}
+        </a>
+      ))}
+    </nav>
+  </div>
+</header>

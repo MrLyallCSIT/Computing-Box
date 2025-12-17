@@ -34,8 +34,11 @@
   ----------------------------- */
   let bitCount = clampInt(Number(bitsInput?.value ?? 8), 1, 64);
   let bits = new Array(bitCount).fill(false);
-
   let randomTimer = null;
+
+  // For responsive wrapping of the top binary display
+  let nibblesPerLine = null;
+  let wrapMeasureSpan = null;
 
   /* -----------------------------
      HELPERS
@@ -80,6 +83,7 @@
   function unsignedBigIntToBits(vUnsigned) {
     const span = unsignedMaxExclusive(bitCount);
     const v = ((vUnsigned % span) + span) % span;
+
     for (let i = 0; i < bitCount; i++) {
       bits[i] = ((v >> BigInt(i)) & 1n) === 1n;
     }
@@ -98,21 +102,77 @@
     unsignedBigIntToBits(v);
   }
 
-  function formatBinaryGrouped() {
-    let s = "";
-    for (let i = bitCount - 1; i >= 0; i--) {
-      s += bits[i] ? "1" : "0";
-      const posFromRight = (bitCount - i);
-      if (i !== 0 && posFromRight % 4 === 0) s += " ";
-    }
-    return s;
-  }
-
   function updateModeHint() {
     if (!modeHint) return;
     modeHint.textContent = isTwosMode()
       ? "Tip: In two’s complement, the left-most bit (MSB) represents a negative value."
       : "Tip: In unsigned binary, all bits represent positive values.";
+  }
+
+  /* -----------------------------
+     TOP BINARY DISPLAY: responsive wrap by nibble count
+  ----------------------------- */
+  function ensureWrapMeasurer() {
+    if (wrapMeasureSpan || !binaryEl) return;
+    wrapMeasureSpan = document.createElement("span");
+    wrapMeasureSpan.style.position = "absolute";
+    wrapMeasureSpan.style.visibility = "hidden";
+    wrapMeasureSpan.style.whiteSpace = "pre";
+    wrapMeasureSpan.style.pointerEvents = "none";
+    // Inherit font/letterspacing from binaryEl
+    wrapMeasureSpan.style.font = getComputedStyle(binaryEl).font;
+    wrapMeasureSpan.style.letterSpacing = getComputedStyle(binaryEl).letterSpacing;
+    document.body.appendChild(wrapMeasureSpan);
+  }
+
+  function computeNibblesPerLine() {
+    if (!binaryEl) return null;
+    ensureWrapMeasurer();
+
+    // Available width = width of the readout area (binaryEl parent)
+    const host = binaryEl.parentElement;
+    if (!host) return null;
+
+    const hostW = host.getBoundingClientRect().width;
+    if (!Number.isFinite(hostW) || hostW <= 0) return null;
+
+    // Measure one nibble including trailing space ("0000 ")
+    wrapMeasureSpan.textContent = "0000 ";
+    const nibbleW = wrapMeasureSpan.getBoundingClientRect().width || 1;
+
+    // Safety: keep at least 1 nibble per line
+    const max = Math.max(1, Math.floor(hostW / nibbleW));
+    return max;
+  }
+
+  function formatBinaryWrapped() {
+    // EXACT bitCount digits (no padding to 4)
+    let raw = "";
+    for (let i = bitCount - 1; i >= 0; i--) raw += bits[i] ? "1" : "0";
+
+    // If <= 4 bits, do NOT insert spaces/newlines at all
+    if (bitCount <= 4) return raw;
+
+    const groups = [];
+    for (let i = 0; i < raw.length; i += 4) {
+      groups.push(raw.slice(i, i + 4));
+    }
+
+    const perLine = nibblesPerLine ?? groups.length;
+    if (perLine >= groups.length) return groups.join(" ");
+
+    const lines = [];
+    for (let i = 0; i < groups.length; i += perLine) {
+      lines.push(groups.slice(i, i + perLine).join(" "));
+    }
+    return lines.join("\n");
+  }
+
+  function refreshBinaryWrap() {
+    const next = computeNibblesPerLine();
+    // Only update if it actually changes (prevents jitter)
+    if (next !== nibblesPerLine) nibblesPerLine = next;
+    updateReadout(); // re-render with new wrap
   }
 
   /* -----------------------------
@@ -128,9 +188,17 @@
 
     bitsGrid.innerHTML = "";
 
+    bitsGrid.classList.toggle("bitsFew", bitCount < 8);
+    if (bitCount < 8) {
+      bitsGrid.style.setProperty("--cols", String(bitCount));
+    } else {
+      bitsGrid.style.removeProperty("--cols");
+    }
+
     for (let i = bitCount - 1; i >= 0; i--) {
       const bitEl = document.createElement("div");
       bitEl.className = "bit";
+
       bitEl.innerHTML = `
         <div class="bulb" id="bulb-${i}" aria-hidden="true">💡</div>
         <div class="bitVal" id="bitLabel-${i}"></div>
@@ -139,6 +207,7 @@
           <span class="slider"></span>
         </label>
       `;
+
       bitsGrid.appendChild(bitEl);
     }
 
@@ -150,6 +219,28 @@
       });
     });
 
+    // bulb styling + 25% bigger (vs 26px previously)
+    for (let i = 0; i < bitCount; i++) {
+      const bulb = document.getElementById(`bulb-${i}`);
+      if (!bulb) continue;
+      bulb.style.width = "auto";
+      bulb.style.height = "auto";
+      bulb.style.border = "none";
+      bulb.style.background = "transparent";
+      bulb.style.borderRadius = "0";
+      bulb.style.boxShadow = "none";
+      bulb.style.opacity = "0.45";
+      bulb.style.fontSize = "32px";
+      bulb.style.lineHeight = "1";
+      bulb.style.display = "flex";
+      bulb.style.alignItems = "center";
+      bulb.style.justifyContent = "center";
+      bulb.style.filter = "grayscale(1)";
+      bulb.textContent = "💡";
+    }
+
+    // wrapping may change when bit width changes
+    refreshBinaryWrap();
     updateUI();
   }
 
@@ -161,10 +252,8 @@
       const label = document.getElementById(`bitLabel-${i}`);
       if (!label) continue;
 
-      // Keep label on ONE LINE (no wrapping)
-      label.style.whiteSpace = "nowrap";
-
       if (isTwosMode() && i === bitCount - 1) {
+        // Keep on one line (CSS: white-space:nowrap)
         label.textContent = `-${pow2Big(bitCount - 1).toString()}`;
       } else {
         label.textContent = pow2Big(i).toString();
@@ -183,14 +272,25 @@
     for (let i = 0; i < bitCount; i++) {
       const bulb = document.getElementById(`bulb-${i}`);
       if (!bulb) continue;
-      bulb.classList.toggle("on", bits[i] === true);
+
+      const on = bits[i] === true;
+      if (on) {
+        bulb.style.opacity = "1";
+        bulb.style.filter = "grayscale(0)";
+        bulb.style.textShadow = "0 0 18px rgba(255,216,107,.75), 0 0 30px rgba(255,216,107,.45)";
+      } else {
+        bulb.style.opacity = "0.45";
+        bulb.style.filter = "grayscale(1)";
+        bulb.style.textShadow = "none";
+      }
     }
   }
 
   function updateReadout() {
     if (!denaryEl || !binaryEl) return;
+
     denaryEl.textContent = (isTwosMode() ? bitsToSignedBigIntTwos() : bitsToUnsignedBigInt()).toString();
-    binaryEl.textContent = formatBinaryGrouped();
+    binaryEl.textContent = formatBinaryWrapped();
   }
 
   function updateUI() {
@@ -202,16 +302,18 @@
   }
 
   /* -----------------------------
-     INPUT SETTERS
+     SET FROM INPUT
   ----------------------------- */
   function setFromBinaryString(binStr) {
     const clean = String(binStr ?? "").replace(/\s+/g, "");
     if (!/^[01]+$/.test(clean)) return false;
+
     const padded = clean.slice(-bitCount).padStart(bitCount, "0");
     for (let i = 0; i < bitCount; i++) {
       const charFromRight = padded[padded.length - 1 - i];
       bits[i] = charFromRight === "1";
     }
+
     updateUI();
     return true;
   }
@@ -253,13 +355,15 @@
   }
 
   function shiftRight() {
-    // Unsigned: logical right shift (MSB becomes 0)
-    // Two's complement: arithmetic right shift (MSB preserved)
-    const msb = bits[bitCount - 1];
-
-    for (let i = 0; i < bitCount - 1; i++) bits[i] = bits[i + 1];
-
-    bits[bitCount - 1] = isTwosMode() ? msb : false;
+    if (isTwosMode()) {
+      // arithmetic right shift: keep MSB
+      const msb = bits[bitCount - 1];
+      for (let i = 0; i < bitCount - 1; i++) bits[i] = bits[i + 1];
+      bits[bitCount - 1] = msb;
+    } else {
+      for (let i = 0; i < bitCount - 1; i++) bits[i] = bits[i + 1];
+      bits[bitCount - 1] = false;
+    }
     updateUI();
   }
 
@@ -280,8 +384,7 @@
       signedBigIntToBitsTwos(v);
     } else {
       const span = unsignedMaxExclusive(bitCount);
-      const v = (bitsToUnsignedBigInt() + 1n) % span;
-      unsignedBigIntToBits(v);
+      unsignedBigIntToBits((bitsToUnsignedBigInt() + 1n) % span);
     }
     updateUI();
   }
@@ -295,18 +398,16 @@
       signedBigIntToBitsTwos(v);
     } else {
       const span = unsignedMaxExclusive(bitCount);
-      const v = (bitsToUnsignedBigInt() - 1n + span) % span;
-      unsignedBigIntToBits(v);
+      unsignedBigIntToBits((bitsToUnsignedBigInt() - 1n + span) % span);
     }
     updateUI();
   }
 
   /* -----------------------------
-     RANDOM (with running pulse + longer run)
+     RANDOM
   ----------------------------- */
   function cryptoRandomBigInt(maxExclusive) {
     if (maxExclusive <= 0n) return 0n;
-
     const bitLen = maxExclusive.toString(2).length;
     const byteLen = Math.ceil(bitLen / 8);
 
@@ -319,13 +420,12 @@
 
       const extraBits = BigInt(byteLen * 8 - bitLen);
       if (extraBits > 0n) x = x >> extraBits;
-
       if (x < maxExclusive) return x;
     }
   }
 
   function setRandomOnce() {
-    const span = unsignedMaxExclusive(bitCount); // 2^n
+    const span = unsignedMaxExclusive(bitCount);
     const u = cryptoRandomBigInt(span);
     unsignedBigIntToBits(u);
     updateUI();
@@ -337,11 +437,8 @@
       randomTimer = null;
     }
 
-    // pulse while running
-    btnRandom?.classList.add("is-running");
-
     const start = Date.now();
-    const durationMs = 1125; // 25% longer than 900ms
+    const durationMs = 1125; // (your “~25% longer” vs 900ms)
     const tickMs = 80;
 
     randomTimer = setInterval(() => {
@@ -349,31 +446,30 @@
       if (Date.now() - start >= durationMs) {
         clearInterval(randomTimer);
         randomTimer = null;
-        btnRandom?.classList.remove("is-running");
       }
     }, tickMs);
   }
 
   /* -----------------------------
-     BIT WIDTH
+     BIT WIDTH CONTROLS
   ----------------------------- */
   function setBitWidth(n) {
     buildBits(clampInt(n, 1, 64));
   }
 
   /* -----------------------------
-     TOOLBOX VISIBILITY
+     TOOLBOX TOGGLE (simple open/close state)
   ----------------------------- */
-  function setToolboxVisible(isVisible) {
-    if (!toolboxPanel) return;
-    toolboxPanel.style.display = isVisible ? "flex" : "none";
-    toolboxToggle?.setAttribute("aria-expanded", String(isVisible));
+  function setToolboxOpen(open) {
+    document.body.classList.toggle("toolboxClosed", !open);
+    toolboxToggle?.setAttribute("aria-expanded", open ? "true" : "false");
+    refreshBinaryWrap(); // width changes when toolbox closes/opens
   }
 
   /* -----------------------------
      EVENTS
   ----------------------------- */
-  modeToggle?.addEventListener("change", updateUI);
+  modeToggle?.addEventListener("change", () => updateUI());
 
   btnCustomBinary?.addEventListener("click", () => {
     const v = prompt(`Enter binary (spaces allowed). Current width: ${bitCount} bits`);
@@ -384,8 +480,8 @@
   btnCustomDenary?.addEventListener("click", () => {
     const v = prompt(
       isTwosMode()
-        ? `Enter denary (${twosMin(bitCount)} to ${twosMax(bitCount)}):`
-        : `Enter denary (0 to ${unsignedMaxValue(bitCount)}):`
+        ? `Enter denary (${twosMin(bitCount).toString()} to ${twosMax(bitCount).toString()}):`
+        : `Enter denary (0 to ${unsignedMaxValue(bitCount).toString()}):`
     );
     if (v === null) return;
     if (!setFromDenaryInput(v)) alert("Invalid denary for current mode/bit width");
@@ -406,8 +502,15 @@
   bitsInput?.addEventListener("change", () => setBitWidth(Number(bitsInput.value)));
 
   toolboxToggle?.addEventListener("click", () => {
-    const isOpen = toolboxToggle.getAttribute("aria-expanded") !== "false";
-    setToolboxVisible(!isOpen);
+    const isOpen = !document.body.classList.contains("toolboxClosed");
+    setToolboxOpen(!isOpen);
+  });
+
+  // Recompute wrapping live when the window size changes
+  let resizeT = null;
+  window.addEventListener("resize", () => {
+    if (resizeT) clearTimeout(resizeT);
+    resizeT = setTimeout(() => refreshBinaryWrap(), 60);
   });
 
   /* -----------------------------
@@ -415,5 +518,5 @@
   ----------------------------- */
   updateModeHint();
   buildBits(bitCount);
-  setToolboxVisible(true);
+  setToolboxOpen(true);
 })();

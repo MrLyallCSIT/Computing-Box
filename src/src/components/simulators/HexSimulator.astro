@@ -1,0 +1,104 @@
+---
+import "./hex/hex-simulator.css";
+---
+
+<section class="hex-sim" data-hex-sim>
+  <div class="hex-main">
+    <div class="hex-readout">
+      <div class="hex-label">DENARY</div>
+      <div class="hex-number" data-out="denary">0</div>
+
+      <div class="hex-label hex-mt">HEXADECIMAL</div>
+      <div class="hex-number hex-number--small" data-out="hex">00</div>
+
+      <div class="hex-label hex-mt">BINARY</div>
+      <div class="hex-number hex-number--tiny" data-out="bin">0000 0000</div>
+    </div>
+
+    <div class="hex-divider"></div>
+
+    <div class="hex-digits" data-out="digitsRow"></div>
+  </div>
+
+  <!-- Toolbox button -->
+  <button class="hex-toolbox-btn" type="button" data-action="toggleToolbox" aria-controls="hex-toolbox" aria-expanded="true">
+    <span class="hex-toolbox-icon" aria-hidden="true">
+      <!-- toolbox icon -->
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none">
+        <path d="M9 7V6a3 3 0 0 1 6 0v1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M4 9h16l-1.3 10.4A2 2 0 0 1 16.7 21H7.3a2 2 0 0 1-1.98-1.6L4 9Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M10 13h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </span>
+    TOOLBOX
+  </button>
+
+  <!-- Toolbox panel -->
+  <aside class="hex-toolbox is-open" id="hex-toolbox" data-out="toolbox">
+    <div class="hex-panel">
+      <div class="hex-panel-title">SETTINGS</div>
+
+      <div class="hex-setting-title">HEX DIGIT WIDTH</div>
+
+      <div class="hex-width">
+        <button class="hex-btn hex-btn--square" type="button" data-action="digitsMinus">−</button>
+
+        <div class="hex-width-readout">
+          <div class="hex-width-label">DIGITS</div>
+          <div class="hex-width-number" data-out="digitsCount">2</div>
+        </div>
+
+        <button class="hex-btn hex-btn--square" type="button" data-action="digitsPlus">+</button>
+      </div>
+
+      <div class="hex-hint" data-out="bitsHint">= 8 bits</div>
+    </div>
+
+    <div class="hex-panel">
+      <div class="hex-panel-title">CUSTOM NUMBER</div>
+
+      <div class="hex-grid-2">
+        <button class="hex-btn hex-btn--green" type="button" data-action="customHex">Custom Hexadecimal</button>
+        <button class="hex-btn hex-btn--green" type="button" data-action="customDenary">Custom Denary</button>
+      </div>
+
+      <!-- Custom Binary + Random on SAME row, same size -->
+      <div class="hex-grid-2 hex-mt-sm">
+        <button class="hex-btn hex-btn--green" type="button" data-action="customBinary">Custom Binary</button>
+        <button class="hex-btn hex-btn--wide hex-btn--random" type="button" data-action="random" data-random>Random</button>
+      </div>
+
+      <div class="hex-tiny-note">RANDOM RUNS BRIEFLY THEN STOPS AUTOMATICALLY.</div>
+    </div>
+
+    <div class="hex-panel">
+      <div class="hex-panel-title">TOOLS</div>
+
+      <div class="hex-tools-top">
+        <button class="hex-btn hex-btn--square hex-btn--red" type="button" data-action="decrement" title="Decrement">▼</button>
+        <button class="hex-btn hex-btn--square hex-btn--green2" type="button" data-action="increment" title="Increment">▲</button>
+      </div>
+
+      <button class="hex-btn hex-btn--wide hex-btn--reset" type="button" data-action="reset">Reset</button>
+    </div>
+  </aside>
+
+  <!-- Custom number dialog -->
+  <dialog class="hex-dialog" data-out="dialog">
+    <div class="hex-dialog-card">
+      <div class="hex-dialog-title" data-out="dialogTitle">Custom</div>
+
+      <input class="hex-dialog-input hex-font-mono" data-out="dialogInput" />
+
+      <div class="hex-dialog-hint" data-out="dialogHint"></div>
+      <div class="hex-dialog-error" data-out="dialogError" aria-live="polite"></div>
+
+      <div class="hex-dialog-actions">
+        <button class="hex-btn" type="button" data-action="dialogCancel">Cancel</button>
+        <button class="hex-btn hex-btn--green" type="button" data-action="dialogApply">Apply</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script type="module" src="/src/components/simulators/hex/hex-simulator.ts"></script>
+</section>
