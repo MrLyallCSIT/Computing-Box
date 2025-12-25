@@ -1,0 +1,40 @@
+name: Changelog
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  changelog:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (full history + tags)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # fetch-depth: 0 is important so git-cliff can see tags/history properly :contentReference[oaicite:3]{index=3}
+
+      - name: Generate CHANGELOG.md (Keep a Changelog)
+        uses: orhun/git-cliff-action@v4
+        with:
+          config: cliff.toml
+          args: --verbose
+        env:
+          OUTPUT: CHANGELOG.md
+
+      - name: Commit and push if changed
+        shell: bash
+        run: |
+          set -e
+          if git diff --quiet -- CHANGELOG.md; then
+            echo "No changelog changes."
+            exit 0
+          fi
+
+          git config user.name "gitea-actions[bot]"
+          git config user.email "actions@localhost"
+
+          git add CHANGELOG.md
+          git commit -m "docs(changelog): update changelog [skip ci]"
+          git push
