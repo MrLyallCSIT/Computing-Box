@@ -1,6 +1,11 @@
 # Computing:Box
 An evolution of Bit:Box & CS:Box to incorporate different elements of the UK Computing Curriculum
 
+### Available at:
+- [Personal Gitea Instance](https://git.adcmnetworks.co.uk/alexander.lyall/computing-box),
+- [GitHub](https://github.com/MrLyallCSIT/Computing-Box)
+- [The Official Computing:Box Website](https://www.computingbox.co.uk)
+
 ![Computing:Box Logo](/assets/img/ComputingBox-Logo.png "Computing:Box Logo")
 
 ## Upcoming Features
@@ -30,7 +35,7 @@ An evolution of Bit:Box & CS:Box to incorporate different elements of the UK Com
 - [ ] Computer Components Simulator
 
 ## Version 1.0 Release Date: 1<sup>st</sup> September 2025
-## Version 2.0 Release Date (Goal): 1<sup>st</sup> February 2026
+## Version 2.0 Release Date (Goal): 1<sup>st</sup> April 2026
 
 Shield: [![CC BY-NC-SA 4.0][cc-by-nc-sa-shield]][cc-by-nc-sa]
 
