@@ -16,15 +16,20 @@ jobs:
         with:
           fetch-depth: 0
 
+      # Generates Keep a Changelog style CHANGELOG.md using git-cliff.
+      # IMPORTANT: The action downloads git-cliff from GitHub Releases, so we pass a GitHub PAT
+      # (stored as a Gitea secret) to avoid GitHub API 401/rate-limit issues.
       - name: Generate CHANGELOG.md (Keep a Changelog)
         uses: orhun/git-cliff-action@v4
         with:
           config: cliff.toml
           args: --verbose
+          github_token: ${{ secrets.DC_GITHUB_PAT }}
         env:
           OUTPUT: CHANGELOG.md
 
-      - name: Commit and push if changed (PAT)
+      # Commits and pushes CHANGELOG.md back to main using a Gitea PAT stored as CHANGELOG_PAT
+      - name: Commit and push if changed (Gitea PAT)
         shell: bash
         env:
           CHANGELOG_PAT: ${{ secrets.CHANGELOG_PAT }}
@@ -42,18 +47,16 @@ jobs:
           git add CHANGELOG.md
           git commit -m "docs(changelog): update changelog [skip ci]"
 
-          # Push using PAT (avoid relying on built-in tokens)
-          # NOTE: This assumes your origin remote is already set by checkout.
           origin_url="$(git remote get-url origin)"
 
-          # Convert SSH origin to HTTPS if needed
+          # Convert SSH origin to HTTPS if needed (git@host:owner/repo.git -> https://host/owner/repo.git)
           if echo "$origin_url" | grep -q "^git@"; then
             host="$(echo "$origin_url" | sed -E 's#git@([^:]+):.*#\1#')"
             path="$(echo "$origin_url" | sed -E 's#git@[^:]+:(.*)#\1#')"
             origin_url="https://$host/$path"
           fi
 
-          # Inject token (PAT) into HTTPS URL
+          # Inject token into https:// URL (https://host/owner/repo.git -> https://oauth2:TOKEN@host/owner/repo.git)
           authed_url="$(echo "$origin_url" | sed -E "s#^https://#https://oauth2:${CHANGELOG_PAT}@#")"
 
           git push "$authed_url" HEAD:main
