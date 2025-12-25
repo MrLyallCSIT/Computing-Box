@@ -6,7 +6,8 @@ An evolution of Bit:Box & CS:Box to incorporate different elements of the UK Com
 - [GitHub](https://github.com/MrLyallCSIT/Computing-Box)
 - [The Official Computing:Box Website](https://www.computingbox.co.uk)
 
-![Computing:Box Logo](/assets/img/ComputingBox-Logo.png "Computing:Box Logo")
+
+<img src="/assets/img/ComputingBox-Logo.png" alt="Computing:Box Logo" width="250px" height="250px"/>
 
 ## Upcoming Features
 ### Original Bit:Box Features (October 2024)
