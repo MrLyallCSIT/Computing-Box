@@ -15,7 +15,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      # fetch-depth: 0 is important so git-cliff can see tags/history properly :contentReference[oaicite:3]{index=3}
 
       - name: Generate CHANGELOG.md (Keep a Changelog)
         uses: orhun/git-cliff-action@v4
@@ -25,18 +24,36 @@ jobs:
         env:
           OUTPUT: CHANGELOG.md
 
-      - name: Commit and push if changed
+      - name: Commit and push if changed (PAT)
         shell: bash
+        env:
+          CHANGELOG_PAT: ${{ secrets.CHANGELOG_PAT }}
         run: |
           set -e
+
           if git diff --quiet -- CHANGELOG.md; then
             echo "No changelog changes."
             exit 0
           fi
 
-          git config user.name "gitea-actions[bot]"
-          git config user.email "actions@localhost"
+          git config user.name "changelog-bot"
+          git config user.email "changelog-bot@users.noreply.local"
 
           git add CHANGELOG.md
           git commit -m "docs(changelog): update changelog [skip ci]"
-          git push
+
+          # Push using PAT (avoid relying on built-in tokens)
+          # NOTE: This assumes your origin remote is already set by checkout.
+          origin_url="$(git remote get-url origin)"
+
+          # Convert SSH origin to HTTPS if needed
+          if echo "$origin_url" | grep -q "^git@"; then
+            host="$(echo "$origin_url" | sed -E 's#git@([^:]+):.*#\1#')"
+            path="$(echo "$origin_url" | sed -E 's#git@[^:]+:(.*)#\1#')"
+            origin_url="https://$host/$path"
+          fi
+
+          # Inject token (PAT) into HTTPS URL
+          authed_url="$(echo "$origin_url" | sed -E "s#^https://#https://oauth2:${CHANGELOG_PAT}@#")"
+
+          git push "$authed_url" HEAD:main
