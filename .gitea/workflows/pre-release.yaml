@@ -59,14 +59,14 @@ jobs:
         shell: bash
         run: |
           set -e
-          if [ ! -d "export" ]; then
-            echo "❌ export/ folder not found in repo root"
+          if [ ! -d "dist" ]; then
+            echo "❌ dist/ folder not found in repo root"
             ls -la
             exit 1
           fi
 
           rm -f "Computing:Box Website.zip"
-          (cd export && zip -r "../Computing:Box Website.zip" .)
+          (cd dist && zip -r "../Computing:Box Website.zip" .)
           test -s "Computing:Box Website.zip"
           ls -lh "Computing:Box Website.zip"
 
