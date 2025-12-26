@@ -1,0 +1,194 @@
+name: Pre-release on non-main branches
+
+on:
+  push:
+    branches-ignore: [ main ]
+  workflow_dispatch:
+
+jobs:
+  prerelease:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout (full history + tags)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Stop if this is the bot changelog commit
+        shell: bash
+        run: |
+          set -e
+          msg="$(git log -1 --pretty=%B)"
+          echo "$msg" | tr -d '\r' | grep -qi "\[skip ci\]" && {
+            echo "Skipping (bot commit with [skip ci])"
+            exit 0
+          } || true
+
+      - name: Install git-cliff
+        shell: bash
+        run: |
+          set -e
+          GIT_CLIFF_VERSION="2.11.0"
+          URL="https://github.com/orhun/git-cliff/releases/download/v${GIT_CLIFF_VERSION}/git-cliff-${GIT_CLIFF_VERSION}-x86_64-unknown-linux-gnu.tar.gz"
+          curl -L "$URL" -o /tmp/git-cliff.tar.gz
+          tar -xzf /tmp/git-cliff.tar.gz -C /tmp
+          sudo install /tmp/git-cliff-*/git-cliff /usr/local/bin/git-cliff
+          git-cliff --version
+
+      - name: Generate CHANGELOG.md (in runner only)
+        shell: bash
+        run: |
+          set -e
+          git-cliff --config cliff.toml --output CHANGELOG.md
+          test -s CHANGELOG.md
+
+      - name: Extract newest changelog section for pre-release body
+        shell: bash
+        run: |
+          set -e
+          awk '
+            /^## / { if (seen) exit; seen=1 }
+            seen { print }
+          ' CHANGELOG.md > RELEASE_NOTES.md
+
+          sed -i 's/[[:space:]]*$//' RELEASE_NOTES.md
+          test -s RELEASE_NOTES.md
+
+      - name: Create export zip (Computing:Box Website.zip)
+        shell: bash
+        run: |
+          set -e
+          if [ ! -d "export" ]; then
+            echo "❌ export/ folder not found in repo root"
+            ls -la
+            exit 1
+          fi
+
+          rm -f "Computing:Box Website.zip"
+          (cd export && zip -r "../Computing:Box Website.zip" .)
+          test -s "Computing:Box Website.zip"
+          ls -lh "Computing:Box Website.zip"
+
+      - name: Prepare pre-release tag + name
+        shell: bash
+        run: |
+          set -e
+
+          # Get branch name from ref: refs/heads/feature/x -> feature/x
+          ref="${GITHUB_REF#refs/heads/}"
+          # Make it tag-safe: lowercase, / -> -, remove invalid chars, collapse repeats
+          safe_branch="$(echo "$ref" | tr '[:upper:]' '[:lower:]' | sed -E 's#[^a-z0-9._-]+#-#g; s#-+#-#g; s#(^-|-$)##g')"
+
+          VERSION="$(date -u +'%y.%m.%d')"
+          SHORT_SHA="$(git rev-parse --short HEAD)"
+
+          # Pre-release tag format:
+          # vYY.MM.DD-pre.<branch>.<sha>
+          TAG="v${VERSION}-pre.${safe_branch}.${SHORT_SHA}"
+
+          # Release name shown in UI
+          RELEASE_NAME="Computing:Box pre-release (${ref}) v${VERSION}"
+
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
+          echo "RELEASE_NAME=$RELEASE_NAME" >> "$GITHUB_ENV"
+          echo "ZIP_PATH=Computing:Box Website.zip" >> "$GITHUB_ENV"
+          echo "BRANCH_NAME=$ref" >> "$GITHUB_ENV"
+
+          echo "Using tag: $TAG"
+          echo "Release name: $RELEASE_NAME"
+
+      - name: Create and push tag (CHANGELOG_PAT)
+        shell: bash
+        env:
+          CHANGELOG_PAT: ${{ secrets.CHANGELOG_PAT }}
+        run: |
+          set -e
+
+          git tag -f "$TAG"
+
+          origin_url="$(git remote get-url origin)"
+
+          # Convert SSH origin to HTTPS if needed
+          if echo "$origin_url" | grep -q "^git@"; then
+            host="$(echo "$origin_url" | sed -E 's#git@([^:]+):.*#\1#')"
+            path="$(echo "$origin_url" | sed -E 's#git@[^:]+:(.*)#\1#')"
+            origin_url="https://$host/$path"
+          fi
+
+          authed_url="$(echo "$origin_url" | sed -E "s#^https://#https://oauth2:${CHANGELOG_PAT}@#")"
+          git push "$authed_url" "refs/tags/$TAG" --force
+
+      - name: Create Gitea pre-release + upload asset (CHANGELOG_PAT)
+        shell: bash
+        env:
+          CHANGELOG_PAT: ${{ secrets.CHANGELOG_PAT }}
+        run: |
+          set -e
+
+          origin_url="$(git remote get-url origin)"
+          if echo "$origin_url" | grep -q "^git@"; then
+            host="$(echo "$origin_url" | sed -E 's#git@([^:]+):.*#\1#')"
+            path="$(echo "$origin_url" | sed -E 's#git@[^:]+:(.*)#\1#')"
+            origin_url="https://$host/$path"
+          fi
+
+          base="$(echo "$origin_url" | sed -E 's#(https?://[^/]+)/.*#\1#')"
+          repo_path="$(echo "$origin_url" | sed -E 's#https?://[^/]+/##')"
+          repo_path="$(echo "$repo_path" | sed -E 's/\.git$//')"
+
+          owner="$(echo "$repo_path" | cut -d/ -f1)"
+          repo="$(echo "$repo_path" | cut -d/ -f2-)"
+
+          api="$base/api/v1"
+
+          python3 - <<'PY'
+          import json, os
+          tag = os.environ["TAG"]
+          name = os.environ["RELEASE_NAME"]
+          branch = os.environ.get("BRANCH_NAME", "")
+
+          with open("RELEASE_NOTES.md", "r", encoding="utf-8") as f:
+              body = f.read()
+
+          # Add a small pre-release banner at the top
+          banner = f"⚠️ Pre-release build from branch `{branch}`\n\n"
+          payload = {
+              "tag_name": tag,
+              "target_commitish": branch if branch else "main",
+              "name": name,
+              "body": banner + body,
+              "draft": False,
+              "prerelease": True,
+          }
+
+          with open("release.json", "w", encoding="utf-8") as f:
+              json.dump(payload, f)
+          PY
+
+          curl -sS -X POST \
+            -H "Authorization: Bearer ${CHANGELOG_PAT}" \
+            -H "Content-Type: application/json" \
+            "${api}/repos/${owner}/${repo}/releases" \
+            --data-binary @release.json \
+            -o release_response.json
+
+          release_id="$(python3 - <<'PY'
+          import json
+          with open("release_response.json","r",encoding="utf-8") as f:
+              data=json.load(f)
+          rid=data.get("id")
+          if not rid:
+              raise SystemExit("No release id returned. Response:\n" + json.dumps(data, indent=2))
+          print(rid)
+          PY
+          )"
+          echo "Created pre-release id: $release_id"
+
+          curl -sS -X POST \
+            -H "Authorization: Bearer ${CHANGELOG_PAT}" \
+            "${api}/repos/${owner}/${repo}/releases/${release_id}/assets?name=Computing%3ABox%20Website.zip" \
+            -F "attachment=@${ZIP_PATH}" \
+            >/dev/null
+
+          echo "✅ Pre-release created: ${RELEASE_NAME} (tag: ${TAG}) with asset uploaded"
