@@ -1,0 +1,235 @@
+name: Changelog + Release on main
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  changelog_and_release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout (full history + tags)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Stop if this is the bot changelog commit
+        shell: bash
+        run: |
+          set -e
+          msg="$(git log -1 --pretty=%B)"
+          echo "$msg" | tr -d '\r' | grep -qi "\[skip ci\]" && {
+            echo "Skipping (bot commit with [skip ci])"
+            exit 0
+          } || true
+
+      - name: Install git-cliff
+        shell: bash
+        run: |
+          set -e
+          GIT_CLIFF_VERSION="2.11.0"
+          URL="https://github.com/orhun/git-cliff/releases/download/v${GIT_CLIFF_VERSION}/git-cliff-${GIT_CLIFF_VERSION}-x86_64-unknown-linux-gnu.tar.gz"
+          curl -L "$URL" -o /tmp/git-cliff.tar.gz
+          tar -xzf /tmp/git-cliff.tar.gz -C /tmp
+          sudo install /tmp/git-cliff-*/git-cliff /usr/local/bin/git-cliff
+          git-cliff --version
+
+      - name: Generate CHANGELOG.md (Keep a Changelog)
+        shell: bash
+        run: |
+          set -e
+          git-cliff --config cliff.toml --output CHANGELOG.md
+          test -s CHANGELOG.md
+
+      - name: Commit and push CHANGELOG.md if changed (CHANGELOG_PAT)
+        shell: bash
+        env:
+          CHANGELOG_PAT: ${{ secrets.CHANGELOG_PAT }}
+        run: |
+          set -e
+
+          if git diff --quiet -- CHANGELOG.md; then
+            echo "No changelog changes."
+          else
+            git config user.name "changelog-bot"
+            git config user.email "changelog-bot@users.noreply.local"
+
+            git add CHANGELOG.md
+            git commit -m "docs(changelog): update changelog [skip ci]"
+
+            origin_url="$(git remote get-url origin)"
+
+            # Convert SSH origin to HTTPS if needed
+            if echo "$origin_url" | grep -q "^git@"; then
+              host="$(echo "$origin_url" | sed -E 's#git@([^:]+):.*#\1#')"
+              path="$(echo "$origin_url" | sed -E 's#git@[^:]+:(.*)#\1#')"
+              origin_url="https://$host/$path"
+            fi
+
+            authed_url="$(echo "$origin_url" | sed -E "s#^https://#https://oauth2:${CHANGELOG_PAT}@#")"
+            git push "$authed_url" HEAD:main
+          fi
+
+      - name: Extract newest changelog section for release body
+        shell: bash
+        run: |
+          set -e
+          # Extract the first "## ..." section (newest section) from CHANGELOG.md
+          # Includes the "## ..." heading and everything until the next "## ..." heading.
+          awk '
+            /^## / { if (seen) exit; seen=1 }
+            seen { print }
+          ' CHANGELOG.md > RELEASE_NOTES.md
+
+          # Clean trailing whitespace/newlines a bit
+          sed -i 's/[[:space:]]*$//' RELEASE_NOTES.md
+
+          test -s RELEASE_NOTES.md
+          echo "---- RELEASE_NOTES.md ----"
+          head -n 60 RELEASE_NOTES.md
+          echo "--------------------------"
+
+      - name: Create export zip (Computing:Box Website.zip)
+        shell: bash
+        run: |
+          set -e
+          if [ ! -d "export" ]; then
+            echo "❌ export/ folder not found in repo root"
+            ls -la
+            exit 1
+          fi
+
+          rm -f "Computing:Box Website.zip"
+          (cd export && zip -r "../Computing:Box Website.zip" .)
+          test -s "Computing:Box Website.zip"
+          ls -lh "Computing:Box Website.zip"
+
+      - name: Prepare YY.MM.DD letter-suffix tag + release name
+        shell: bash
+        run: |
+          set -e
+
+          # Version: YY.MM.DD (UTC). Swap to `date +...` if you prefer UK-local runner time.
+          VERSION="$(date -u +'%y.%m.%d')"
+          PREFIX="v${VERSION}."
+
+          last_letter="$(
+            git tag --list "${PREFIX}[a-z]" \
+              | sed -E "s/^${PREFIX}([a-z])$/\1/" \
+              | sort \
+              | tail -n 1
+          )"
+
+          if [ -z "$last_letter" ]; then
+            next_letter="a"
+          else
+            if [ "$last_letter" = "z" ]; then
+              echo "❌ Already have v${VERSION}.z today. Refusing to create more than 26 releases/day."
+              exit 1
+            fi
+            next_letter="$(printf "%b" "$(printf '\\%03o' "$(( $(printf '%d' "'$last_letter") + 1 ))")")"
+          fi
+
+          TAG="${PREFIX}${next_letter}"
+          RELEASE_NAME="Computing:Box v${VERSION}.${next_letter}"
+
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
+          echo "RELEASE_NAME=$RELEASE_NAME" >> "$GITHUB_ENV"
+          echo "ZIP_PATH=Computing:Box Website.zip" >> "$GITHUB_ENV"
+
+          echo "Using tag: $TAG"
+          echo "Release name: $RELEASE_NAME"
+
+      - name: Create and push tag (CHANGELOG_PAT)
+        shell: bash
+        env:
+          CHANGELOG_PAT: ${{ secrets.CHANGELOG_PAT }}
+        run: |
+          set -e
+
+          git tag -f "$TAG"
+
+          origin_url="$(git remote get-url origin)"
+
+          # Convert SSH origin to HTTPS if needed
+          if echo "$origin_url" | grep -q "^git@"; then
+            host="$(echo "$origin_url" | sed -E 's#git@([^:]+):.*#\1#')"
+            path="$(echo "$origin_url" | sed -E 's#git@[^:]+:(.*)#\1#')"
+            origin_url="https://$host/$path"
+          fi
+
+          authed_url="$(echo "$origin_url" | sed -E "s#^https://#https://oauth2:${CHANGELOG_PAT}@#")"
+          git push "$authed_url" "refs/tags/$TAG" --force
+
+      - name: Create Gitea release + upload asset (CHANGELOG_PAT)
+        shell: bash
+        env:
+          CHANGELOG_PAT: ${{ secrets.CHANGELOG_PAT }}
+        run: |
+          set -e
+
+          origin_url="$(git remote get-url origin)"
+          if echo "$origin_url" | grep -q "^git@"; then
+            host="$(echo "$origin_url" | sed -E 's#git@([^:]+):.*#\1#')"
+            path="$(echo "$origin_url" | sed -E 's#git@[^:]+:(.*)#\1#')"
+            origin_url="https://$host/$path"
+          fi
+
+          base="$(echo "$origin_url" | sed -E 's#(https?://[^/]+)/.*#\1#')"
+          repo_path="$(echo "$origin_url" | sed -E 's#https?://[^/]+/##')"
+          repo_path="$(echo "$repo_path" | sed -E 's/\.git$//')"
+
+          owner="$(echo "$repo_path" | cut -d/ -f1)"
+          repo="$(echo "$repo_path" | cut -d/ -f2-)"
+
+          api="$base/api/v1"
+
+          python3 - <<'PY'
+          import json, os
+          tag = os.environ["TAG"]
+          name = os.environ["RELEASE_NAME"]
+
+          with open("RELEASE_NOTES.md", "r", encoding="utf-8") as f:
+              body = f.read()
+
+          payload = {
+              "tag_name": tag,
+              "target_commitish": "main",
+              "name": name,
+              "body": body,   # newest section only
+              "draft": False,
+              "prerelease": False,
+          }
+
+          with open("release.json", "w", encoding="utf-8") as f:
+              json.dump(payload, f)
+          PY
+
+          curl -sS -X POST \
+            -H "Authorization: Bearer ${CHANGELOG_PAT}" \
+            -H "Content-Type: application/json" \
+            "${api}/repos/${owner}/${repo}/releases" \
+            --data-binary @release.json \
+            -o release_response.json
+
+          release_id="$(python3 - <<'PY'
+          import json
+          with open("release_response.json","r",encoding="utf-8") as f:
+              data=json.load(f)
+          rid=data.get("id")
+          if not rid:
+              raise SystemExit("No release id returned. Response:\n" + json.dumps(data, indent=2))
+          print(rid)
+          PY
+          )"
+          echo "Created release id: $release_id"
+
+          curl -sS -X POST \
+            -H "Authorization: Bearer ${CHANGELOG_PAT}" \
+            "${api}/repos/${owner}/${repo}/releases/${release_id}/assets?name=Computing%3ABox%20Website.zip" \
+            -F "attachment=@${ZIP_PATH}" \
+            >/dev/null
+
+          echo "✅ Release created: ${RELEASE_NAME} (tag: ${TAG}) with asset uploaded"
