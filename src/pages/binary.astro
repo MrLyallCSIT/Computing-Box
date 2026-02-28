@@ -5,8 +5,8 @@
  * Bit width: 4..64
  *
  * Requires:
- *  public/fonts/DSEG7Classic-Regular.woff
- *  public/fonts/DSEG7Classic-Regular.ttf
+ * public/fonts/DSEG7Classic-Regular.woff
+ * public/fonts/DSEG7Classic-Regular.ttf
  */
 ---
 
@@ -16,7 +16,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Binary | Computing:Box</title>
 
-    <style>
+    <style is:global>
       :root{
         --bg: #1f2027;
         --panel: #22242d;
@@ -51,7 +51,7 @@
         padding: 32px 20px 60px;
       }
 
-      /* Layout: readout left, settings panel right (like your screenshot) */
+      /* Layout: readout/bits on left, settings panel on right */
       .layout{
         display:grid;
         grid-template-columns: 1fr 360px;
@@ -92,7 +92,6 @@
         word-break: break-all;
       }
 
-      /* Buttons under readout (as requested) */
       .controls{
         margin-top: 16px;
         display:flex;
@@ -142,7 +141,7 @@
         line-height: 1.35;
       }
 
-      /* Reusable toggle switch (for MODE and for each BIT) */
+      /* Reusable toggle switch */
       .switch{
         position: relative;
         width: 56px;
@@ -260,7 +259,7 @@
         opacity: .95;
       }
 
-      /* Bulb (must come back!) */
+      /* Bulb */
       .bulb{
         width: 22px;
         height: 22px;
@@ -293,7 +292,7 @@
   <body>
     <main class="wrap">
       <section class="layout">
-        <!-- LEFT: readout + buttons -->
+        
         <div>
           <div class="readout">
             <div class="label">Denary</div>
@@ -310,80 +309,56 @@
             </div>
           </div>
 
-          <!-- Bits grid (built by JS so bit-width 4..64 works) -->
           <section id="bitsGrid" class="bits" aria-label="Bit switches"></section>
         </div>
 
-        <!-- RIGHT: settings panel -->
         <aside>
           <div class="panel">
             <div class="panelTitle">Mode</div>
             <div class="panelRow">
               <span style="font-weight:800;">Unsigned</span>
-
-              <!-- MODE TOGGLE uses SAME switch style -->
               <label class="switch" aria-label="Toggle Two's complement mode">
                 <input id="modeToggle" type="checkbox" />
                 <span class="slider"></span>
               </label>
-
-              <span style="font-weight:800;">Two’s complement</span>
+              <span style="font-weight:800;">Two's complement</span>
             </div>
             <div class="hint">
-              Tip: In two’s complement, the left-most bit (MSB) represents a negative value.
+              Tip: In two's complement, the left-most bit (MSB) represents a negative value.
             </div>
           </div>
 
           <div class="panel">
             <div class="panelTitle">Bit width</div>
-
             <div class="bwControls">
               <button class="bwBtn" id="btnBitsDown" type="button" aria-label="Decrease bits">−</button>
-
               <div class="bwInput">
                 <div class="bwLabel">Bits</div>
-                <input
-                  id="bitsField"
-                  class="bwField"
-                  type="number"
-                  min="4"
-                  max="64"
-                  step="1"
-                  value="8"
-                  inputmode="numeric"
-                />
+                <input id="bitsField" class="bwField" type="number" min="4" max="64" step="1" value="8" inputmode="numeric" />
               </div>
-
               <button class="bwBtn" id="btnBitsUp" type="button" aria-label="Increase bits">+</button>
             </div>
-
             <div class="hint">
               Minimum 4 bits, maximum 64 bits.
             </div>
           </div>
         </aside>
+
       </section>
     </main>
 
     <script type="module">
       // ---------- State ----------
-      let bitsCount = 8;           // 4..64
-      let isTwos = false;          // false = unsigned
-      let bitStates = [];          // MSB -> LSB booleans
+      let bitsCount = 8;
+      let isTwos = false;
+      let bitStates = [];
 
       // ---------- Helpers ----------
       function clamp(n, min, max){ return Math.min(max, Math.max(min, n)); }
 
-      function pow2(n){
-        // for up to 64 bits, Number is still OK for *visual simulator*.
-        // if you later want exact 64-bit maths, swap to BigInt end-to-end.
-        return 2 ** n;
-      }
+      function pow2(n){ return 2 ** n; }
 
       function getPlaceValues(){
-        // MSB -> LSB
-        // Unsigned: [2^(n-1), ..., 1]
-        // Two's:    [-2^(n-1), 2^(n-2), ..., 1]
         const vals = [];
         for (let i = 0; i < bitsCount; i++){
           const power = bitsCount - 1 - i;
@@ -420,7 +395,6 @@
         document.getElementById("binaryNumber").innerText = binaryString();
         document.getElementById("denaryNumber").innerText = String(denaryValue());
 
-        // bulb on/off updates:
         for (let i = 0; i < bitsCount; i++){
           const bulb = document.getElementById(`bulb-${i}`);
           if (bulb) bulb.classList.toggle("on", !!bitStates[i]);
@@ -430,7 +404,6 @@
       // ---------- DOM build for bits grid ----------
       function setBitsGridColumns(){
         const grid = document.getElementById("bitsGrid");
-        // make it adapt (up to 16 per row max, then wraps)
         const cols = clamp(bitsCount, 4, 16);
         grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
       }
@@ -445,7 +418,7 @@
 
         for (let i = 0; i < bitsCount; i++){
           const v = values[i];
-
+          
           const bit = document.createElement("div");
           bit.className = "bit";
 
@@ -456,10 +429,8 @@
 
           const val = document.createElement("div");
           val.className = "bitVal num";
-          // show absolute label for MSB in twos? No — show the actual negative value (clear to students).
           val.textContent = String(v);
 
-          // IMPORTANT: bit switch must be the SAME style as MODE switch
           const label = document.createElement("label");
           label.className = "switch";
           label.setAttribute("aria-label", `Toggle bit ${v}`);
@@ -483,6 +454,7 @@
           bit.appendChild(bulb);
           bit.appendChild(val);
           bit.appendChild(label);
+          
           grid.appendChild(bit);
         }
 
@@ -496,8 +468,7 @@
 
         const padded = clean.slice(-bitsCount).padStart(bitsCount, "0");
         bitStates = [...padded].map(ch => ch === "1");
-
-        // update toggles without rebuilding
+        
         for (let i = 0; i < bitsCount; i++){
           const toggle = document.querySelector(`input[type="checkbox"][data-index="${i}"]`);
           if (toggle) toggle.checked = bitStates[i];
@@ -513,16 +484,13 @@
         const { min, max } = rangeForMode();
         if (num < min || num > max) return false;
 
-        // convert to bit pattern
         let unsignedVal;
         if (!isTwos){
           unsignedVal = num;
         } else {
-          // two's complement representation
           unsignedVal = num < 0 ? (pow2(bitsCount) + num) : num;
         }
 
-        // build MSB->LSB bits from unsignedVal
         const newBits = [];
         for (let i = 0; i < bitsCount; i++){
           const power = bitsCount - 1 - i;
@@ -541,17 +509,14 @@
 
       // ---------- Shifts ----------
       function shiftLeft(){
-        // logical left shift: drop MSB, add 0 at LSB
         bitStates = bitStates.slice(1).concat(false);
-        buildBitsGrid(); // rebuild keeps labels correct if mode changed (also updates bulbs)
+        buildBitsGrid(); 
       }
 
       function shiftRight(){
         if (!isTwos){
-          // logical right shift
           bitStates = [false].concat(bitStates.slice(0, -1));
         } else {
-          // arithmetic right shift (preserve MSB)
           const msb = bitStates[0];
           bitStates = [msb].concat(bitStates.slice(0, -1));
         }
@@ -563,11 +528,9 @@
         const wanted = clamp(Number(next) || 8, 4, 64);
         if (wanted === bitsCount) return;
 
-        // keep the right-most (LSB) bits when resizing (feels natural)
         const old = binaryString();
         bitsCount = wanted;
 
-        // rebuild state from old binary, keeping LSBs
         const padded = old.slice(-bitsCount).padStart(bitsCount, "0");
         bitStates = [...padded].map(ch => ch === "1");
 
@@ -577,10 +540,9 @@
 
       // ---------- Mode toggle ----------
       function applyMode(nextIsTwos){
-        const prevDenary = denaryValue(); // keep the *value* if possible
+        const prevDenary = denaryValue();
         isTwos = !!nextIsTwos;
-
-        // Try to keep the denary value, but clamp if it becomes invalid in the new mode
+        
         const { min, max } = rangeForMode();
         const kept = clamp(prevDenary, min, max);
         setFromDenary(kept);
@@ -606,11 +568,9 @@
           if (!setFromDenary(val)) alert(`Invalid input. Enter an integer from ${min} to ${max}.`);
         });
 
-        // Mode toggle
         const modeToggle = document.getElementById("modeToggle");
         modeToggle.addEventListener("change", () => applyMode(modeToggle.checked));
 
-        // Bit width +/- and manual entry
         document.getElementById("btnBitsDown").addEventListener("click", () => applyBitsCount(bitsCount - 1));
         document.getElementById("btnBitsUp").addEventListener("click", () => applyBitsCount(bitsCount + 1));
 
@@ -624,7 +584,6 @@
 
       // ---------- Init ----------
       function init(){
-        // default: 8-bit unsigned
         bitsCount = 8;
         isTwos = false;
         bitStates = Array(bitsCount).fill(false);
