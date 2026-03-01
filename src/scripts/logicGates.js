@@ -32,12 +32,10 @@
   
   let nextNodeId = 1;
   let nextWireId = 1;
-  let inputCount = 0;
-  let outputCount = 0;
 
   let isDraggingNode = null;
   let dragOffset = { x: 0, y: 0 };
-  let clickStartX = 0, clickStartY = 0; // Fixes switch drag conflict
+  let clickStartX = 0, clickStartY = 0; 
   
   let wiringStart = null; 
   let tempWirePath = null;
@@ -252,6 +250,23 @@
     generateTruthTable();
   }
 
+  /* --- Smart Label Generation --- */
+  function getNextInputLabel() {
+    let charCode = 65; // Starts at 'A'
+    while (Object.values(nodes).some(n => n.type === 'INPUT' && n.label === String.fromCharCode(charCode))) {
+      charCode++;
+    }
+    return String.fromCharCode(charCode);
+  }
+
+  function getNextOutputLabel() {
+    let idx = 1;
+    while (Object.values(nodes).some(n => n.type === 'OUTPUT' && n.label === ('Q' + idx))) {
+      idx++;
+    }
+    return 'Q' + idx;
+  }
+
   /* --- Node Creation --- */
   function createNodeElement(node) {
     const el = document.createElement('div');
@@ -292,7 +307,6 @@
     node.el = el;
 
     if (node.type === 'INPUT') {
-      // Custom click handler to prevent dragging from toggling the switch
       el.querySelector('.switch').addEventListener('click', (e) => {
         const dist = Math.hypot(e.clientX - clickStartX, e.clientY - clickStartY);
         if (isDraggingNode || dist > 3) {
@@ -313,9 +327,9 @@
 
   function spawnNode(type, gateType = null, dropX = null, dropY = null) {
     let label = '';
-    if (type === 'INPUT') { inputCount++; label = String.fromCharCode(64 + inputCount); }
-    if (type === 'OUTPUT') { outputCount++; label = `Q${outputCount}`; }
-    if (type === 'GATE') { label = gateType; }
+    if (type === 'INPUT') label = getNextInputLabel();
+    if (type === 'OUTPUT') label = getNextOutputLabel();
+    if (type === 'GATE') label = gateType;
 
     const id = `node_${nextNodeId++}`;
     
@@ -468,8 +482,6 @@
     workspace.querySelectorAll('.lg-node').forEach(el => el.remove());
     nodes = {};
     connections = [];
-    inputCount = 0;
-    outputCount = 0;
     runSimulation();
   });
 
@@ -481,9 +493,5 @@
   });
 
   initToolbox();
-  spawnNode('INPUT', null, 80, 150);
-  spawnNode('INPUT', null, 80, 250);
-  spawnNode('GATE', 'AND', 320, 200);
-  spawnNode('OUTPUT', null, 600, 200);
-
+  // Starts completely blank as requested!
 })();
