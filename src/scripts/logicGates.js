@@ -4,6 +4,7 @@
 (() => {
   /* --- DOM Elements --- */
   const workspace = document.getElementById("workspace");
+  const viewport = document.getElementById("viewport");
   const wireLayer = document.getElementById("wireLayer");
   const ttContainer = document.getElementById("truthTableContainer");
   const toolboxGrid = document.getElementById("toolboxGrid");
@@ -12,7 +13,7 @@
   const toolboxToggle = document.getElementById("toolboxToggle");
   const logicPage = document.getElementById("logicPage");
 
-  /* --- ANSI Gate SVGs (Strict 100x50 with built-in tails) --- */
+  /* --- ANSI Gate SVGs --- */
   const GATE_SVGS = {
     'AND': `<g stroke="#e8e8ee" stroke-width="3" fill="none"><path d="M0,15 L20,15 M0,35 L20,35 M70,25 L100,25"/><path d="M20,5 L50,5 A20,20 0 0 1 50,45 L20,45 Z" fill="var(--bg)"/></g>`,
     'OR': `<g stroke="#e8e8ee" stroke-width="3" fill="none"><path d="M0,15 L26,15 M0,35 L26,35 M70,25 L100,25"/><path d="M20,5 Q55,5 70,25 Q55,45 20,45 Q40,25 20,5 Z" fill="var(--bg)"/></g>`,
@@ -33,15 +34,20 @@
   let nextNodeId = 1;
   let nextWireId = 1;
 
+  // Interaction State
   let isDraggingNode = null;
   let dragOffset = { x: 0, y: 0 };
   let clickStartX = 0, clickStartY = 0; 
   
   let wiringStart = null; 
   let tempWirePath = null;
-  
   let selectedWireId = null; 
   let selectedNodeId = null;
+
+  // Camera State (Pan & Zoom)
+  let panX = 0, panY = 0, zoom = 1;
+  let isPanning = false;
+  let panStart = { x: 0, y: 0 };
 
   /* --- Setup Toolbox --- */
   function initToolbox() {
@@ -56,7 +62,6 @@
         <div class="tb-icon-label">Output</div>
       </div>
     `;
-    
     Object.keys(GATE_SVGS).forEach(gate => {
       html += `
         <div draggable="true" data-spawn="GATE" data-gate="${gate}" class="drag-item tb-icon-box" title="${gate} Gate">
@@ -65,7 +70,6 @@
         </div>
       `;
     });
-    
     toolboxGrid.innerHTML = html;
 
     document.querySelectorAll('.drag-item').forEach(item => {
@@ -76,7 +80,21 @@
     });
   }
 
-  /* --- Math & Geometry --- */
+  /* --- Camera Math --- */
+  function updateViewport() {
+    viewport.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
+    workspace.style.backgroundSize = `${24 * zoom}px ${24 * zoom}px`;
+    workspace.style.backgroundPosition = `${panX}px ${panY}px`;
+  }
+
+  function zoomWorkspace(factor, mouseX, mouseY) {
+    const newZoom = Math.min(Math.max(0.2, zoom * factor), 3);
+    panX = mouseX - (mouseX - panX) * (newZoom / zoom);
+    panY = mouseY - (mouseY - panY) * (newZoom / zoom);
+    zoom = newZoom;
+    updateViewport();
+  }
+
   function getPortCoords(nodeId, portDataAttr) {
     const node = nodes[nodeId];
     if (!node || !node.el) return {x:0, y:0};
@@ -87,9 +105,10 @@
     const wsRect = workspace.getBoundingClientRect();
     const portRect = portEl.getBoundingClientRect();
     
+    // Calculate backwards through camera scale/pan to find true local coordinates
     return {
-      x: portRect.left - wsRect.left + (portRect.width / 2),
-      y: portRect.top - wsRect.top + (portRect.height / 2)
+      x: (portRect.left - wsRect.left - panX + portRect.width / 2) / zoom,
+      y: (portRect.top - wsRect.top - panY + portRect.height / 2) / zoom
     };
   }
 
@@ -101,37 +120,30 @@
   /* --- Rendering --- */
   function renderWires() {
     let svgHTML = '';
-    
     connections.forEach(conn => {
       const from = getPortCoords(conn.fromNode, 'out');
       const to = getPortCoords(conn.toNode, `in${conn.toPort}`);
       const sourceNode = nodes[conn.fromNode];
       const isActive = sourceNode && sourceNode.value === true;
       const isSelected = conn.id === selectedWireId;
-      
       svgHTML += `<path class="lg-wire ${isActive ? 'active' : ''} ${isSelected ? 'selected' : ''}" d="${drawBezier(from.x, from.y, to.x, to.y)}" data-conn-id="${conn.id}" />`;
     });
 
     if (wiringStart && tempWirePath) {
       svgHTML += `<path class="lg-wire lg-wire-temp" d="${drawBezier(wiringStart.x, wiringStart.y, tempWirePath.x, tempWirePath.y)}" />`;
     }
-
     wireLayer.innerHTML = svgHTML;
   }
 
   function updateNodePositions() {
     Object.values(nodes).forEach(n => {
-      if (n.el) {
-        n.el.style.left = `${n.x}px`;
-        n.el.style.top = `${n.y}px`;
-      }
+      if (n.el) { n.el.style.left = `${n.x}px`; n.el.style.top = `${n.y}px`; }
     });
     renderWires();
   }
 
   function clearSelection() {
-    selectedWireId = null;
-    selectedNodeId = null;
+    selectedWireId = null; selectedNodeId = null;
     document.querySelectorAll('.lg-node.selected').forEach(el => el.classList.remove('selected'));
     renderWires();
   }
@@ -139,22 +151,16 @@
   /* --- Logic Evaluation --- */
   function evaluateGraph(overrideInputs = null) {
     let context = {}; 
-
     Object.values(nodes).filter(n => n.type === 'INPUT').forEach(n => {
       context[n.id] = overrideInputs ? overrideInputs[n.id] : n.value;
     });
 
-    let changed = true;
-    let loops = 0;
-    
+    let changed = true; let loops = 0;
     while (changed && loops < 10) {
-      changed = false;
-      loops++;
-      
+      changed = false; loops++;
       Object.values(nodes).filter(n => n.type === 'GATE').forEach(gate => {
         let in1Conn = connections.find(c => c.toNode === gate.id && c.toPort === '1');
         let in2Conn = connections.find(c => c.toNode === gate.id && c.toPort === '2');
-
         let val1 = in1Conn ? (context[in1Conn.fromNode] || false) : false;
         let val2 = in2Conn ? (context[in2Conn.fromNode] || false) : false;
         
@@ -168,11 +174,7 @@
           case 'XOR': res = val1 !== val2; break;
           case 'XNOR': res = val1 === val2; break;
         }
-
-        if (context[gate.id] !== res) {
-          context[gate.id] = res;
-          changed = true;
-        }
+        if (context[gate.id] !== res) { context[gate.id] = res; changed = true; }
       });
     }
 
@@ -193,7 +195,6 @@
         }
       });
     }
-
     return outStates;
   }
 
@@ -205,12 +206,10 @@
     const outNodes = Object.values(nodes).filter(n => n.type === 'OUTPUT').sort((a,b) => a.label.localeCompare(b.label));
 
     if (inNodes.length === 0 || outNodes.length === 0) {
-      ttContainer.innerHTML = '<div style="padding: 16px; color: var(--muted); text-align:center;">Add inputs and outputs to generate table.</div>';
-      return;
+      ttContainer.innerHTML = '<div style="padding: 16px; color: var(--muted); text-align:center;">Add inputs and outputs to generate table.</div>'; return;
     }
     if (inNodes.length > 6) {
-      ttContainer.innerHTML = '<div style="padding: 16px; color: var(--muted); text-align:center;">Maximum 6 inputs supported.</div>';
-      return;
+      ttContainer.innerHTML = '<div style="padding: 16px; color: var(--muted); text-align:center;">Maximum 6 inputs supported.</div>'; return;
     }
 
     let html = '<table class="tt-table"><thead><tr>';
@@ -219,27 +218,16 @@
     html += '</tr></thead><tbody>';
 
     const numRows = Math.pow(2, inNodes.length);
-
     for (let i = 0; i < numRows; i++) {
       let override = {};
-      inNodes.forEach((n, idx) => {
-        override[n.id] = ((i >> (inNodes.length - 1 - idx)) & 1) === 1;
-      });
-
+      inNodes.forEach((n, idx) => { override[n.id] = ((i >> (inNodes.length - 1 - idx)) & 1) === 1; });
       let outStates = evaluateGraph(override);
 
       html += '<tr>';
-      inNodes.forEach(n => {
-        let val = override[n.id];
-        html += `<td class="${val ? 'tt-on' : ''}">${val ? 1 : 0}</td>`;
-      });
-      outNodes.forEach(n => {
-        let val = outStates[n.id];
-        html += `<td class="${val ? 'tt-on' : ''}" style="font-weight:bold;">${val ? 1 : 0}</td>`;
-      });
+      inNodes.forEach(n => { let val = override[n.id]; html += `<td class="${val ? 'tt-on' : ''}">${val ? 1 : 0}</td>`; });
+      outNodes.forEach(n => { let val = outStates[n.id]; html += `<td class="${val ? 'tt-on' : ''}" style="font-weight:bold;">${val ? 1 : 0}</td>`; });
       html += '</tr>';
     }
-
     html += '</tbody></table>';
     ttContainer.innerHTML = html;
   }
@@ -252,28 +240,22 @@
 
   /* --- Smart Label Generation --- */
   function getNextInputLabel() {
-    let charCode = 65; // Starts at 'A'
-    while (Object.values(nodes).some(n => n.type === 'INPUT' && n.label === String.fromCharCode(charCode))) {
-      charCode++;
-    }
+    let charCode = 65; 
+    while (Object.values(nodes).some(n => n.type === 'INPUT' && n.label === String.fromCharCode(charCode))) { charCode++; }
     return String.fromCharCode(charCode);
   }
 
   function getNextOutputLabel() {
     let idx = 1;
-    while (Object.values(nodes).some(n => n.type === 'OUTPUT' && n.label === ('Q' + idx))) {
-      idx++;
-    }
+    while (Object.values(nodes).some(n => n.type === 'OUTPUT' && n.label === ('Q' + idx))) { idx++; }
     return 'Q' + idx;
   }
 
   /* --- Node Creation --- */
   function createNodeElement(node) {
     const el = document.createElement('div');
-    el.className = `lg-node`;
-    el.dataset.id = node.id;
-    el.style.left = `${node.x}px`;
-    el.style.top = `${node.y}px`;
+    el.className = `lg-node`; el.dataset.id = node.id;
+    el.style.left = `${node.x}px`; el.style.top = `${node.y}px`;
 
     let innerHTML = `<div class="lg-header">${node.label}</div><div class="lg-gate-container">`;
 
@@ -281,12 +263,12 @@
       innerHTML += `
         <div class="switch" style="margin:0;"><span class="slider"></span></div>
         ${INPUT_SVG}
-        <div class="lg-port port-out" data-port="out" style="top: 25px; left: 86px;"></div>
+        <div class="lg-port" data-port="out" style="top: 25px; left: 86px;"></div>
       `;
     } 
     else if (node.type === 'OUTPUT') {
       innerHTML += `
-        <div class="lg-port port-in-1" data-port="in1" style="top: 25px; left: 0;"></div>
+        <div class="lg-port" data-port="in1" style="top: 25px; left: 0;"></div>
         ${OUTPUT_SVG}
         <div class="bulb" style="margin:0;"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.25a6.75 6.75 0 0 0-6.75 6.75c0 2.537 1.393 4.75 3.493 5.922l.507.282v1.546h5.5v-1.546l.507-.282A6.75 6.75 0 0 0 12 2.25Zm-2.25 16.5v.75a2.25 2.25 0 0 0 4.5 0v-.75h-4.5Z"/></svg></div>
       `;
@@ -294,34 +276,33 @@
     else if (node.type === 'GATE') {
       const isNot = node.gateType === 'NOT';
       innerHTML += `
-        <div class="lg-port port-in-1" data-port="in1" style="top: ${isNot ? '25px' : '15px'}; left: 0;"></div>
-        ${!isNot ? `<div class="lg-port port-in-2" data-port="in2" style="top: 35px; left: 0;"></div>` : ''}
+        <div class="lg-port" data-port="in1" style="top: ${isNot ? '25px' : '15px'}; left: 0;"></div>
+        ${!isNot ? `<div class="lg-port" data-port="in2" style="top: 35px; left: 0;"></div>` : ''}
         <svg class="lg-gate-svg" viewBox="0 0 100 50">${GATE_SVGS[node.gateType]}</svg>
-        <div class="lg-port port-out" data-port="out" style="top: 25px; left: 100px;"></div>
+        <div class="lg-port" data-port="out" style="top: 25px; left: 100px;"></div>
       `;
     }
-
     innerHTML += `</div>`;
     el.innerHTML = innerHTML;
-    workspace.appendChild(el);
+    
+    viewport.appendChild(el);
     node.el = el;
 
     if (node.type === 'INPUT') {
       el.querySelector('.switch').addEventListener('click', (e) => {
         const dist = Math.hypot(e.clientX - clickStartX, e.clientY - clickStartY);
-        if (isDraggingNode || dist > 3) {
-          e.preventDefault(); 
+        if (dist > 3) {
+          e.preventDefault(); // Prevents toggle if it was a drag motion
         } else {
           node.value = !node.value;
           el.querySelector('.switch').classList.toggle('active-sim', node.value);
           el.querySelector('.slider').style.background = node.value ? 'rgba(40,240,122,.25)' : '';
           el.querySelector('.slider').style.borderColor = node.value ? 'rgba(40,240,122,.30)' : '';
-          el.querySelector('.slider').innerHTML = node.value ? `<style>#${node.id} .slider::before { transform: translateX(28px); }</style>` : '';
+          el.querySelector('.slider').innerHTML = node.value ? `<style>#logicPage [data-id="${node.id}"] .slider::before { transform: translateX(28px); }</style>` : '';
           runSimulation();
         }
       });
     }
-
     return el;
   }
 
@@ -332,7 +313,6 @@
     if (type === 'GATE') label = gateType;
 
     const id = `node_${nextNodeId++}`;
-    
     const offset = Math.floor(Math.random() * 40);
     const x = dropX !== null ? dropX : (type === 'INPUT' ? 50 : (type === 'OUTPUT' ? 600 : 300) + offset);
     const y = dropY !== null ? dropY : 150 + offset;
@@ -344,10 +324,27 @@
   }
 
   /* --- Global Interaction Handlers --- */
+
+  // Camera Zoom Controls
+  document.getElementById("btnZoomIn")?.addEventListener('click', () => { 
+    const r = workspace.getBoundingClientRect(); zoomWorkspace(1.2, r.width/2, r.height/2); 
+  });
+  document.getElementById("btnZoomOut")?.addEventListener('click', () => { 
+    const r = workspace.getBoundingClientRect(); zoomWorkspace(1/1.2, r.width/2, r.height/2); 
+  });
+  document.getElementById("btnZoomReset")?.addEventListener('click', () => { 
+    panX = 0; panY = 0; zoom = 1; updateViewport(); 
+  });
+
+  workspace.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const wsRect = workspace.getBoundingClientRect();
+    const factor = e.deltaY < 0 ? 1.1 : (1/1.1);
+    zoomWorkspace(factor, e.clientX - wsRect.left, e.clientY - wsRect.top);
+  });
   
   workspace.addEventListener('mousedown', (e) => {
-    clickStartX = e.clientX;
-    clickStartY = e.clientY;
+    clickStartX = e.clientX; clickStartY = e.clientY;
 
     const port = e.target.closest('.lg-port');
     if (port) {
@@ -356,11 +353,7 @@
       
       if (portId.startsWith('in')) {
         const existingIdx = connections.findIndex(c => c.toNode === nodeEl.dataset.id && c.toPort === portId.replace('in', ''));
-        if (existingIdx !== -1) {
-          connections.splice(existingIdx, 1);
-          runSimulation();
-          return; 
-        }
+        if (existingIdx !== -1) { connections.splice(existingIdx, 1); runSimulation(); return; }
       }
 
       if (portId === 'out') {
@@ -385,32 +378,41 @@
       clearSelection();
       selectedNodeId = nodeEl.dataset.id;
       nodeEl.classList.add('selected');
-
       isDraggingNode = nodeEl.dataset.id;
+      
       const rect = nodeEl.getBoundingClientRect();
-      dragOffset = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+      dragOffset = { x: (e.clientX - rect.left) / zoom, y: (e.clientY - rect.top) / zoom };
       return;
     }
 
+    // Clicked empty space -> Pan Camera
     clearSelection();
+    isPanning = true;
+    panStart = { x: e.clientX - panX, y: e.clientY - panY };
   });
 
   window.addEventListener('mousemove', (e) => {
     const wsRect = workspace.getBoundingClientRect();
 
+    if (isPanning) {
+      panX = e.clientX - panStart.x;
+      panY = e.clientY - panStart.y;
+      updateViewport();
+      return;
+    }
+
     if (isDraggingNode) {
       const node = nodes[isDraggingNode];
-      let newX = e.clientX - wsRect.left - dragOffset.x;
-      let newY = e.clientY - wsRect.top - dragOffset.y;
-      node.x = Math.max(10, Math.min(newX, wsRect.width - 80));
-      node.y = Math.max(20, Math.min(newY, wsRect.height - 60));
+      let newX = (e.clientX - wsRect.left - panX) / zoom - dragOffset.x;
+      let newY = (e.clientY - wsRect.top - panY) / zoom - dragOffset.y;
+      node.x = newX; node.y = newY;
       updateNodePositions();
     }
 
     if (wiringStart) {
       tempWirePath = { 
-        x: e.clientX - wsRect.left, 
-        y: e.clientY - wsRect.top 
+        x: (e.clientX - wsRect.left - panX) / zoom, 
+        y: (e.clientY - wsRect.top - panY) / zoom 
       };
       renderWires();
     }
@@ -418,6 +420,7 @@
 
   window.addEventListener('mouseup', (e) => {
     isDraggingNode = null;
+    isPanning = false;
 
     if (wiringStart) {
       const port = e.target.closest('.lg-port');
@@ -427,18 +430,10 @@
 
         if (targetNodeId !== wiringStart.node) {
           connections = connections.filter(c => !(c.toNode === targetNodeId && c.toPort === targetPortId));
-          
-          connections.push({
-            id: `conn_${nextWireId++}`,
-            fromNode: wiringStart.node,
-            fromPort: 'out',
-            toNode: targetNodeId,
-            toPort: targetPortId
-          });
+          connections.push({ id: `conn_${nextWireId++}`, fromNode: wiringStart.node, fromPort: 'out', toNode: targetNodeId, toPort: targetPortId });
         }
       }
-      wiringStart = null;
-      tempWirePath = null;
+      wiringStart = null; tempWirePath = null;
       runSimulation();
     }
   });
@@ -448,17 +443,15 @@
     if (e.key === 'Delete' || e.key === 'Backspace') {
       if (selectedWireId) {
         connections = connections.filter(c => c.id !== selectedWireId);
-        clearSelection();
-        runSimulation();
+        clearSelection(); runSimulation();
       } 
       else if (selectedNodeId) {
         connections = connections.filter(c => c.fromNode !== selectedNodeId && c.toNode !== selectedNodeId);
         if (nodes[selectedNodeId] && nodes[selectedNodeId].el) {
-          workspace.removeChild(nodes[selectedNodeId].el);
+          viewport.removeChild(nodes[selectedNodeId].el);
         }
         delete nodes[selectedNodeId];
-        clearSelection();
-        runSimulation();
+        clearSelection(); runSimulation();
       }
     }
   });
@@ -471,17 +464,16 @@
     if (spawnType) {
       const gateType = e.dataTransfer.getData('gateType');
       const wsRect = workspace.getBoundingClientRect();
-      const x = e.clientX - wsRect.left - 40; 
-      const y = e.clientY - wsRect.top - 30;
+      const x = (e.clientX - wsRect.left - panX) / zoom - 40; 
+      const y = (e.clientY - wsRect.top - panY) / zoom - 30;
       spawnNode(spawnType, gateType || null, x, y);
     }
   });
 
   /* --- Init --- */
   btnClearBoard?.addEventListener('click', () => {
-    workspace.querySelectorAll('.lg-node').forEach(el => el.remove());
-    nodes = {};
-    connections = [];
+    viewport.querySelectorAll('.lg-node').forEach(el => el.remove());
+    nodes = {}; connections = [];
     runSimulation();
   });
 
@@ -493,5 +485,4 @@
   });
 
   initToolbox();
-  // Starts completely blank as requested!
 })();
