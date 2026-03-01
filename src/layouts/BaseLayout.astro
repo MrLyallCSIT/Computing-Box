@@ -1,17 +1,47 @@
 ---
-// src/layouts/BaseLayout.astro
+import '../styles/global.css';
+
 const { title = "Computing:Box" } = Astro.props;
 ---
+
 <!doctype html>
 <html lang="en">
- <head>
- <meta charset="utf-8" />
- <meta name="viewport" content="width=device-width, initial-scale=1" />
- <title>{title}</title>
- <link rel="stylesheet" href="/styles.css" />
- <link rel="stylesheet" href="/fonts/DSEG7Classic-Regular.css">
- </head>
- <body>
- <slot />
- </body>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>{title}</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <header class="siteNav">
+      <div class="navInner">
+        <a class="brand" href="/">
+          <img class="brandLogo" src="/images/computing-box-logo.svg" alt="Computing:Box logo" />
+          <span class="brandName">COMPUTING:BOX</span>
+        </a>
+
+        <nav class="navLinks" aria-label="Site navigation">
+          <a href="/about">ABOUT</a>
+          <a href="/binary">BINARY</a>
+          <a href="/hexadecimal">HEXADECIMAL</a>
+          <a href="/hex-colours">HEX COLOURS</a>
+          <a href="/logic-gates">LOGIC GATES</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="pageWrap">
+      <slot />
+    </main>
+
+    <footer class="siteFooter">
+      <div class="footerInner">
+        <div>COMPUTER SCIENCE CONCEPT SIMULATORS</div>
+        <div>© {new Date().getFullYear()} COMPUTING:BOX • CREATED WITH ♥ BY MR LYALL</div>
+      </div>
+    </footer>
+  </body>
 </html>
