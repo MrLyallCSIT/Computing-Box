@@ -4,12 +4,16 @@
 (() => {
   const workspace = document.getElementById("workspace");
   const viewport = document.getElementById("viewport");
-  const wireLayer = document.getElementById("wireLayer");
+  const internalLayer = document.getElementById("wireLayerInternal");
+  const externalLayer = document.getElementById("wireLayerExternal");
   const specsContainer = document.getElementById("buildSpecsContainer");
   const toolboxGrid = document.getElementById("toolboxGrid");
   const btnClearBoard = document.getElementById("btnClearBoard");
   const toolboxToggle = document.getElementById("toolboxToggle");
   const pcPage = document.getElementById("pcPage");
+
+  // Parts defined as "Outside the Chassis"
+  const EXTERNAL_TYPES = ['MONITOR', 'KEYBOARD', 'MOUSE', 'WEBCAM', 'SPEAKER', 'MIC', 'PRINTER'];
 
   /* --- Extensive PC Component Library --- */
   const PC_PARTS = {
@@ -98,17 +102,11 @@
     panY = mouseY - (mouseY - panY) * (newZoom / zoom);
     zoom = newZoom; updateViewport();
   }
-  function getPortCoords(nodeId, portDataAttr) {
-    const node = nodes[nodeId];
-    if (!node || !node.el) return {x:0, y:0};
-    const portEl = node.el.querySelector(`[data-port="${portDataAttr}"]`);
-    if (!portEl) return {x:0, y:0};
-    const wsRect = workspace.getBoundingClientRect();
-    const portRect = portEl.getBoundingClientRect();
-    return {
-      x: (portRect.left - wsRect.left - panX + portRect.width / 2) / zoom,
-      y: (portRect.top - wsRect.top - panY + portRect.height / 2) / zoom
-    };
+  function getPortCoords(nodeId, portId) {
+    const n = nodes[nodeId];
+    const pEl = n.el.querySelector(`[data-port="${portId}"]`);
+    const r = pEl.getBoundingClientRect(), w = workspace.getBoundingClientRect();
+    return { x: (r.left - w.left - panX) / zoom, y: (r.top - w.top - panY) / zoom };
   }
   function drawBezier(x1, y1, x2, y2) {
     const cpDist = Math.abs(x2 - x1) * 0.6 + 20; 
@@ -117,17 +115,22 @@
 
   /* --- Rendering --- */
   function renderWires() {
-    let svgHTML = '';
-    connections.forEach(conn => {
-      const from = getPortCoords(conn.fromNode, conn.fromPort);
-      const to = getPortCoords(conn.toNode, conn.toPort);
-      const isSelected = conn.id === selectedWireId;
-      svgHTML += `<path class="pb-wire active ${isSelected ? 'selected' : ''}" d="${drawBezier(from.x, from.y, to.x, to.y)}" data-conn-id="${conn.id}" />`;
+    let intHtml = '', extHtml = '';
+    connections.forEach(c => {
+      const fromNode = nodes[c.fN];
+      const toNode = nodes[c.tN];
+      if (!fromNode || !toNode) return;
+
+      const p1 = getPortCoords(c.fN, c.fP);
+      const p2 = getPortCoords(c.tN, c.tP);
+      const path = `<path class="pb-wire active" d="M ${p1.x} ${p1.y} C ${p1.x+60} ${p1.y}, ${p2.x-60} ${p2.y}, ${p2.x} ${p2.y}" />`;
+      
+      // Determine if cable is Internal (under panel) or External (on top)
+      (EXTERNAL_TYPES.includes(fromNode.type) || EXTERNAL_TYPES.includes(toNode.type)) ? extHtml += path : intHtml += path;
     });
-    if (wiringStart && tempWirePath) {
-      svgHTML += `<path class="pb-wire pb-wire-temp" d="${drawBezier(wiringStart.x, wiringStart.y, tempWirePath.x, tempWirePath.y)}" />`;
-    }
-    wireLayer.innerHTML = svgHTML;
+    internalLayer.innerHTML = intHtml; 
+    externalLayer.innerHTML = extHtml;
+    evaluateBuild();
   }
 
   function updateNodePositions() {
@@ -145,67 +148,10 @@
 
   /* --- Seven-Segment Diagnostics Engine --- */
   function evaluateBuild() {
-    if(!specsContainer) return;
-
-    let hasCase = false, hasMB = false, hasCPU = false, hasCooler = false, hasRAM = false, hasPSU = false;
-    let hasStorage = false, hasGPU = false;
-    let mbPwr = false, gpuPwr = false;
-    let usbCount = 0, dispConn = false, audConn = false;
-
-    let caseNode = Object.values(nodes).find(n => n.type === 'CASE');
-    let mbNode = Object.values(nodes).find(n => n.type === 'MB');
-    
-    if (caseNode) {
-      hasCase = true;
-      if (caseNode.slots['MB1']) hasMB = true;
-      if (caseNode.slots['PSU1']) hasPSU = true;
-      if (caseNode.slots['HDD1'] || caseNode.slots['HDD2'] || caseNode.slots['SATA_SSD1'] || caseNode.slots['SATA_SSD2']) hasStorage = true;
-    } else if (mbNode) {
-      hasMB = true; // Motherboard exists outside case
-    }
-
-    if (mbNode) {
-      if (mbNode.slots['CPU1']) hasCPU = true;
-      if (mbNode.slots['COOLER1']) hasCooler = true;
-      if (mbNode.slots['RAM1'] || mbNode.slots['RAM2'] || mbNode.slots['RAM3'] || mbNode.slots['RAM4']) hasRAM = true;
-      if (mbNode.slots['PCIE1'] || mbNode.slots['PCIE2']) hasGPU = true;
-      if (mbNode.slots['M2_1'] || mbNode.slots['M2_2']) hasStorage = true;
-    }
-
-    // Check Cables
-    connections.forEach(c => {
-      let n1 = nodes[c.fromNode], n2 = nodes[c.toNode];
-      if(!n1 || !n2) return;
-      let types = [n1.type, n2.type];
-      
-      if(types.includes('MB') && types.includes('PSU')) mbPwr = true;
-      if(types.includes('GPU') && types.includes('PSU')) gpuPwr = true;
-      if(types.includes('MB') && ['KEYBOARD','MOUSE','WEBCAM','MIC','PRINTER'].some(t => types.includes(t))) usbCount++;
-      if(types.includes('MB') && types.includes('SPEAKER')) audConn = true;
-      if((types.includes('MB') || types.includes('GPU')) && types.includes('MONITOR')) dispConn = true;
-    });
-
-    const isBootable = (hasMB && hasCPU && hasCooler && hasRAM && hasPSU && hasStorage && mbPwr && (hasGPU ? gpuPwr : true) && dispConn);
-
-    specsContainer.innerHTML = `
-      <div class="diag-cat">Core System</div>
-      <div class="diag-row"><span>CHASSIS</span><span style="color: ${hasCase ? '#28f07a' : '#ff5555'}">${hasCase ? 'OK' : 'ERR'}</span></div>
-      <div class="diag-row"><span>MOTHERBOARD</span><span style="color: ${hasMB ? '#28f07a' : '#ff5555'}">${hasMB ? 'OK' : 'ERR'}</span></div>
-      <div class="diag-row"><span>CPU</span><span style="color: ${hasCPU ? '#28f07a' : '#ff5555'}">${hasCPU ? 'OK' : 'ERR'}</span></div>
-      <div class="diag-row"><span>COOLING</span><span style="color: ${hasCooler ? '#28f07a' : '#ff5555'}">${hasCooler ? 'OK' : 'ERR'}</span></div>
-      <div class="diag-row"><span>MEMORY</span><span style="color: ${hasRAM ? '#28f07a' : '#ff5555'}">${hasRAM ? 'OK' : 'ERR'}</span></div>
-      <div class="diag-row"><span>POWER SPLY</span><span style="color: ${hasPSU ? '#28f07a' : '#ff5555'}">${hasPSU ? 'OK' : 'ERR'}</span></div>
-      <div class="diag-cat">Connections</div>
-      <div class="diag-row"><span>MB POWER</span><span style="color: ${mbPwr ? '#28f07a' : '#ff5555'}">${mbPwr ? 'OK' : 'ERR'}</span></div>
-      <div class="diag-row"><span>STORAGE</span><span style="color: ${hasStorage ? '#28f07a' : '#ff5555'}">${hasStorage ? 'OK' : 'ERR'}</span></div>
-      <div class="diag-row"><span>GPU POWER</span><span style="color: ${!hasGPU ? '#888' : (gpuPwr ? '#28f07a' : '#ff5555')}">${!hasGPU ? 'N/A' : (gpuPwr ? 'OK' : 'ERR')}</span></div>
-      <div class="diag-row"><span>DISPLAY</span><span style="color: ${dispConn ? '#28f07a' : '#ff5555'}">${dispConn ? 'OK' : 'ERR'}</span></div>
-      <div class="diag-row"><span>USB DEVS</span><span style="color: #55aaff">${usbCount}</span></div>
-      <hr style="border-color: rgba(255,255,255,0.1); margin: 12px 0 8px 0;">
-      <div style="text-align:center; font-size: 28px; color: ${isBootable ? '#28f07a' : '#ff5555'}; font-family: var(--bit-font); letter-spacing: 2px;">
-        ${isBootable ? 'BOOTING...' : 'HALTED'}
-      </div>
-    `;
+    const hasMB = Object.values(nodes).some(n => n.type === 'MB' && n.snappedTo);
+    const hasCPU = Object.values(nodes).some(n => n.type === 'CPU' && n.snappedTo);
+    const boot = hasMB && hasCPU && connections.some(c => nodes[c.fN].type === 'MONITOR' || nodes[c.tN].type === 'MONITOR');
+    workspace.classList.toggle('system-running', boot);
   }
 
   /* --- Node Creation & Snapping --- */
@@ -250,16 +196,12 @@
     evaluateBuild();
   }
 
-  // Recursive movement to handle nested snaps (MB inside CASE inside ...)
+/* --- Movement & Snap Logic (Restored from your Verified Working Script) --- */
   function moveNodeRecursive(nodeId, dx, dy) {
-    const n = nodes[nodeId];
-    if(!n) return;
+    const n = nodes[nodeId]; if(!n) return;
     n.x += dx; n.y += dy;
-    if(n.slots) {
-       Object.keys(n.slots).forEach(k => {
-          if(typeof n.slots[k] === 'string') moveNodeRecursive(n.slots[k], dx, dy);
-       });
-    }
+    if(n.slots) { Object.keys(n.slots).forEach(k => { if(typeof n.slots[k] === 'string') moveNodeRecursive(n.slots[k], dx, dy); }); }
+    if(n.el) { n.el.style.left = n.x + 'px'; n.el.style.top = n.y + 'px'; }
   }
 
   /* --- Inspect Mode --- */

@@ -2,36 +2,54 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 ---
 
-<BaseLayout title="About | Computing:Box">
-  <article style="max-width: 900px; margin: 0 auto;">
-    <div class="card" style="margin-bottom: 40px;">
-      <h1 class="brandName" style="font-size: 32px; color: var(--text); margin-bottom: 16px;">The New Computing:Box Experience</h1>
-      <p style="color: var(--muted); font-size: 18px; line-height: 1.6;">
-        The platform has been rebuilt from the ground up to provide a deeper, more professional simulation environment. 
-        We've introduced several key simulators and interface upgrades to support the modern Computing classroom:
-      </p>
-      
-      <div class="divider"></div>
+<BaseLayout title="About - Computing:Box">
+  <article style="max-width: 1100px; margin: 0 auto; width: 100%;">
+    
+    <div style="text-align: center; margin-bottom: 60px;">
+        <img src="/images/computing-box-logo.svg" alt="Computing:Box Logo" style="width: 250px; border-radius: 20px; box-shadow: 0 12px 40px rgba(0,0,0,0.5);" />
+        <h1 class="brandName" style="font-size: 42px; margin-top: 20px; color: var(--text);">The New Computing:Box Experience</h1>
+    </div>
 
-      <ul style="list-style: none; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+    <div class="card" style="margin-bottom: 40px;">
+      <p style="color: var(--muted); font-size: 18px; line-height: 1.6; text-align: center;">
+        Rebuilt from the ground up to provide a deeper, more professional simulation environment for the UK Computing Curriculum.
+      </p>
+      <div class="divider"></div>
+      <ul style="list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
         <li style="color: var(--text);"><span style="color: var(--accent);">✔</span> New User Interface (Responsive)</li>
         <li style="color: var(--text);"><span style="color: var(--accent);">✔</span> Two's Complement Simulator</li>
-        <li style="color: var(--text);"><span style="color: var(--accent);">✔</span> Extended Binary Simulator (Custom bit sizes)</li>
-        <li style="color: var(--text);"><span style="color: var(--accent);">✔</span> Unified Binary Simulator (Unsigned & Two's Complement)</li>
+        <li style="color: var(--text);"><span style="color: var(--accent);">✔</span> Extended Binary Simulator (Custom sizes)</li>
+        <li style="color: var(--text);"><span style="color: var(--accent);">✔</span> Unified Binary Simulator</li>
         <li style="color: var(--text);"><span style="color: var(--accent);">✔</span> Extended Hexadecimal Simulator</li>
-        <li style="color: var(--text);"><span style="color: var(--accent);">✔</span> Unified Hexadecimal Simulator (GCSE & A Level)</li>
-        <li style="color: var(--text);"><span style="color: var(--accent);">✔</span> Enhanced Gate Simulator (Truth Table Creator)</li>
+        <li style="color: var(--text);"><span style="color: var(--accent);">✔</span> Unified Hexadecimal Simulator</li>
+        <li style="color: var(--text);"><span style="color: var(--accent);">✔</span> Enhanced Gate Simulator (Truth Tables)</li>
         <li style="color: var(--text);"><span style="color: var(--accent);">✔</span> Compound Gate Simulator</li>
         <li style="color: var(--text);"><span style="color: var(--accent);">✔</span> Computer Components Simulator</li>
       </ul>
     </div>
 
-    <div class="card">
-      <h2 class="brandName" style="font-size: 24px; margin-bottom: 12px;">Educational Impact</h2>
-      <p style="color: var(--muted);">
-        Computing:Box is designed to help students learn computing concepts step by step, using clear visuals and simple interactions.
-        By changing values and seeing results straight away, students can build understanding at their own pace.
-      </p>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 40px; align-items: center;">
+        <div class="card">
+            <h2 class="brandName" style="font-size: 24px; color: var(--accent);">From Bit:Box to Computing:Box</h2>
+            <p style="color: var(--muted); line-height: 1.6;">Computing:Box began as Bit:Box, a digital version of a physical Binary Light Box created by Mr Davis. The original device used lightbulbs to show how binary numbers are built.</p>
+        </div>
+        <img src="/images/BitBoxLogo.png" alt="Bit:Box Logo" style="width: 100%; border-radius: 16px; border: 1px solid var(--line);" />
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 40px; align-items: center;">
+        <img src="/images/computingbox-concept-illustration.webp" alt="Simulator Illustration" style="width: 100%; border-radius: 16px; border: 1px solid var(--line);" />
+        <div class="card">
+            <h2 class="brandName" style="font-size: 24px; color: var(--accent);">Learning by Doing</h2>
+            <p style="color: var(--muted); line-height: 1.6;">Students can interact with simulations, change values, and see results instantly. This helps them understand how concepts work rather than memorising rules.</p>
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center;">
+        <div class="card">
+            <h2 class="brandName" style="font-size: 24px; color: var(--accent);">Educational Impact</h2>
+            <p style="color: var(--muted); line-height: 1.6;">Designed for use in lessons, independent study, and revision, helping students build confidence as they explore how computers work.</p>
+        </div>
+        <img src="/images/Educational_Impact.webp" alt="Classroom Impact" style="width: 100%; border-radius: 16px; border: 1px solid var(--line);" />
     </div>
   </article>
 </BaseLayout>
