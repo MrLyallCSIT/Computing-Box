@@ -1,0 +1,114 @@
+/* --- APP LAYOUT --- */
+.binaryPage {
+  --toolbox-w: 360px;
+  --toolbox-gap: 22px;
+  --toolbox-toggle-top: calc(var(--nav-h) + 16px);
+  --toolbox-top: calc(var(--toolbox-toggle-top) + 60px);
+  position: relative; padding-top: 16px; flex: 1; display: flex; flex-direction: column;
+}
+.binaryPage:not(.toolboxCollapsed) { padding-right: calc(var(--toolbox-w) + var(--toolbox-gap)); }
+.binaryPage.toolboxCollapsed { padding-right: 0; }
+.topGrid { display: flex; align-items: stretch; gap: 28px; flex: 1; }
+.leftCol { flex: 1 1 auto; min-width: 0; container-type: inline-size; display: flex; flex-direction: column; }
+
+/* --- READOUT FORMATTING --- */
+.readoutContainer { display: flex; align-items: center; justify-content: center; gap: 64px; width: 100%; }
+.readout { display: flex; flex-direction: column; align-items: center; gap: 16px; padding-top: 4px; }
+.readoutBlock { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.label { font-family: var(--bit-font); letter-spacing: .14em; text-transform: uppercase; font-size: 18px; opacity: .75; margin: 0; }
+.num { font-family: var(--num-font); color: #28f07a; text-shadow: 0 0 18px rgba(40,240,122,.35); letter-spacing: 2px; }
+
+.denaryValue, .hexValue, .binaryValue { display: flex; gap: 16px; justify-content: center; white-space: pre-wrap; text-align: center; margin: 0; line-height: 1; }
+.denaryValue { font-size: 56px; }
+.hexValue { font-size: 48px; }
+.binaryValue { font-size: 40px; }
+
+/* --- GRIDS & BITS --- */
+.bitsWrap { width: 100%; }
+.bitsGrid { --cols: 8; display: grid; grid-template-columns: repeat(var(--cols), minmax(92px, 1fr)); gap: 26px 22px; align-items: start; justify-items: center; }
+.bitsGrid.bitsFew { justify-content: center; }
+.bit { width: 100%; max-width: 140px; display: flex; flex-direction: column; align-items: center; gap: 8px; container-type: inline-size; }
+.bitVal { font-family: var(--bit-font); font-size: min(32px, calc(140cqw / var(--len, 1))); letter-spacing: 2px; color: rgba(232,232,238,.85); white-space: nowrap; line-height: 1; }
+
+/* --- HEXADECIMAL --- */
+.hexGrid { --cols: 4; display: grid; grid-template-columns: repeat(var(--cols), minmax(160px, 1fr)); gap: 32px 20px; align-items: start; justify-items: center; width: 100%; }
+.hexGrid.bitsFew { justify-content: center; }
+.hexCol { display: flex; flex-direction: column; align-items: center; width: 100%; }
+
+/* --- HEX COLOURS SPECIFIC --- */
+.colorGroupWrap { display: flex; flex-wrap: nowrap; gap: 16px; justify-content: center; width: 100%; }
+.colorGroup { display: flex; gap: 12px; padding: 12px; background: rgba(255,255,255,.02); border-radius: 20px; border: 1px solid rgba(255,255,255,.05); flex: 0 1 auto; min-width: 0; }
+.colorPreviewSide { display: flex; gap: 24px; align-items: center; justify-content: center; }
+.colorBoxWrap { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.colorBox { width: 60px; height: 60px; border-radius: 12px; border: 2px solid rgba(255,255,255,.15); box-shadow: 0 4px 16px rgba(0,0,0,.4); background-color: #000000; transition: background-color 0.2s ease; }
+.colorBoxLabel { font-family: var(--ui-font); font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+
+.text-red { color: #ff5555 !important; text-shadow: 0 0 18px rgba(255,85,85,.35) !important; }
+.text-green { color: #28f07a !important; text-shadow: 0 0 18px rgba(40,240,122,.35) !important; }
+.text-blue { color: #55aaff !important; text-shadow: 0 0 18px rgba(85,170,255,.35) !important; }
+
+/* HEX CARD */
+.hexCard { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 16px; padding: 16px 14px; display: flex; flex-direction: column; align-items: center; gap: 16px; width: 100%; max-width: 190px; flex: 0 1 auto; min-width: 0; box-shadow: 0 4px 24px rgba(0,0,0,.2); backdrop-filter: blur(10px); }
+.hexCardButtons { display: flex; gap: 10px; }
+.hexCardBtn { width: 38px; height: 38px; border-radius: 10px; border: 1px solid rgba(255,255,255,.12); font-family: var(--bit-font); font-size: 16px; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; color: rgba(232,232,238,.92); transition: all 0.2s ease; }
+.hexCardBtn.inc { background: rgba(40,240,122,.15); border-color: rgba(40,240,122,.25); }
+.hexCardBtn.inc:hover { background: rgba(40,240,122,.25); border-color: rgba(40,240,122,.4); }
+.hexCardBtn.dec { background: rgba(255,80,80,.18); border-color: rgba(255,80,80,.25); }
+.hexCardBtn.dec:hover { background: rgba(255,80,80,.28); border-color: rgba(255,80,80,.4); }
+.hexDigitDisplay { font-family: var(--num-font); font-size: 48px; color: #28f07a; text-shadow: 0 0 18px rgba(40,240,122,.35); line-height: 1; }
+.hexNibbleRow { display: flex; gap: 10px; justify-content: center; width: 100%; }
+.hexNibbleBit { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.hexNibbleBulb { width: 32px !important; height: 32px !important; margin-bottom: 2px !important; }
+.hexNibbleLabel { font-family: var(--bit-font); font-size: 24px; color: rgba(232,232,238,.6); }
+.hexColWeight { font-family: var(--bit-font); font-size: 40px; color: rgba(232,232,238,.6); margin-top: 14px; }
+
+/* --- TOOLBOX COMPONENTS FOR NUMBERS --- */
+.panelCol { position: fixed; top: var(--toolbox-top); right: 22px; width: var(--toolbox-w); z-index: 80; display: flex; flex-direction: column; gap: 16px; transform: translateX(0); opacity: 1; transition: transform 420ms cubic-bezier(.2,.9,.2,1), opacity 220ms ease; }
+.binaryPage.toolboxCollapsed .panelCol { transform: translateX(calc(var(--toolbox-w) + 32px)); opacity: 0; pointer-events: none; }
+
+.toggleRow { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.toggleLabel { font-family: var(--bit-font); font-size: 16px; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; color: var(--muted); transition: color 0.2s, text-shadow 0.2s; }
+.toggleLabel.activeMode { color: #28f07a; text-shadow: 0 0 12px rgba(40,240,122,.45); }
+.subCard { margin-top: 12px; padding: 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,.10); background: rgba(0,0,0,.12); }
+.subTitle { font-family: var(--bit-font); font-weight: 900; letter-spacing: .14em; text-transform: uppercase; font-size: 16px; margin-bottom: 10px; opacity: .85; }
+.bitWidthRow { display: flex; align-items: center; gap: 10px; }
+.miniBtn { width: 44px; height: 44px; border-radius: 12px; border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.06); color: rgba(232,232,238,.9); font-family: var(--bit-font); font-weight: 900; font-size: 22px; cursor: pointer; }
+.miniBtn:hover { border-color: rgba(255,255,255,.22); }
+.bitInputWrap { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,.10); background: rgba(255,255,255,.04); padding: 10px 12px; }
+.bitInputLabel { font-family: var(--bit-font); font-size: 16px; letter-spacing: .12em; text-transform: uppercase; opacity: .7; }
+.bitInput { width: 70px; text-align: right; font-family: var(--num-font); font-size: 28px; letter-spacing: 2px; color: #28f07a; background: transparent; border: none; outline: none; }
+.controlsRow { display: flex; gap: 12px; margin-bottom: 12px; }
+.toolRowCentered { display: flex; justify-content: center; gap: 10px; margin-bottom: 10px; }
+.toolBtn { width: 46px; height: 46px; border-radius: 12px; border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.06); color: rgba(232,232,238,.92); font-family: var(--bit-font); font-size: 16px; font-weight: 900; cursor: pointer; }
+.toolDec { background: rgba(255,80,80,.20); border-color: rgba(255,80,80,.25); }
+.toolInc { background: rgba(40,240,122,.18); border-color: rgba(40,240,122,.25); }
+
+/* === CONTAINER QUERIES === */
+@container (max-width: 1050px) {
+  .readoutContainer { gap: 40px; }
+  .colorGroupWrap { gap: 10px; }
+  .colorGroup { padding: 10px; gap: 8px; border-radius: 16px; }
+  .hexCard { padding: 12px 8px; width: 140px; gap: 12px; }
+  .hexDigitDisplay { font-size: 40px; }
+  .hexNibbleBulb { width: 24px !important; height: 24px !important; }
+  .hexNibbleLabel { font-size: 20px; }
+  .hexColWeight { font-size: 26px; margin-top: 10px; }
+  .hexCardBtn { width: 34px; height: 34px; font-size: 14px; }
+}
+
+@container (max-width: 800px) {
+  .readoutContainer { flex-direction: column; gap: 24px; }
+  .colorPreviewSide { padding-top: 0; }
+  .colorGroupWrap { gap: 6px; }
+  .colorGroup { padding: 6px; gap: 6px; border-radius: 12px; }
+  .hexCard { padding: 8px 4px; width: 90px; gap: 8px; border-radius: 10px; }
+  .hexDigitDisplay { font-size: 32px; }
+  .hexNibbleBulb { width: 16px !important; height: 16px !important; }
+  .hexNibbleLabel { font-size: 16px; }
+  .hexColWeight { font-size: 20px; margin-top: 6px; }
+  .hexCardBtn { width: 28px; height: 28px; font-size: 12px; }
+  .denaryValue, .hexValue, .binaryValue { font-size: 32px; gap: 10px; }
+}
+
+@media (max-width: 1100px) { .binaryPage { --toolbox-w: 330px; } .denaryValue { font-size: 48px; }  .hexValue { font-size: 40px; } .binaryValue { font-size: 32px; } }
+@media (max-width: 900px) { .binaryPage { --toolbox-w: 320px; } .bitsGrid { grid-template-columns: repeat(var(--cols), minmax(84px, 1fr)); } .hexGrid { grid-template-columns: repeat(var(--cols), minmax(130px, 1fr)); } }

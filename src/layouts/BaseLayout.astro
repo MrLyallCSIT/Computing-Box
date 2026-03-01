@@ -1,6 +1,5 @@
 ---
-import '../styles/global.css';
-
+import "../styles/global.css";
 const { title = "Computing:Box" } = Astro.props;
 ---
 
@@ -11,6 +10,22 @@ const { title = "Computing:Box" } = Astro.props;
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>{title}</title>
     
+    <script is:inline>
+      var _paq = window._paq = window._paq || [];
+      _paq.push(["setCookieDomain", "*.www.computingbox.co.uk"]);
+      _paq.push(["setDomains", ["*.www.computingbox.co.uk","*.csbox.mrdaviscsit.uk","*.csbox.mrlyall.co.uk","*.csbox.mrlyall.uk"]]);
+      _paq.push(["enableCrossDomainLinking"]);
+      _paq.push(["disableCookies"]);
+      _paq.push(['trackPageView']);
+      _paq.push(['enableLinkTracking']);
+      (function() {
+        var u="//analytics.adcmnetworks.co.uk/";
+        _paq.push(['setTrackerUrl', u+'matomo.php']);
+        _paq.push(['setSiteId', '2']);
+        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+        g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+      })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&display=swap" rel="stylesheet">
@@ -29,6 +44,7 @@ const { title = "Computing:Box" } = Astro.props;
           <a href="/hexadecimal">Hexadecimal</a>
           <a href="/hex-colours">Hex Colours</a>
           <a href="/logic-gates">Logic Gates</a>
+          <a href="/pc-builder">PC Components</a>
         </nav>
       </div>
     </header>
@@ -40,7 +56,11 @@ const { title = "Computing:Box" } = Astro.props;
     <footer class="siteFooter">
       <div class="footerInner">
         <div>Computer Science Concept Simulators</div>
-        <div>© {new Date().getFullYear()} Computing:Box • Created with ♥ by Mr A Lyall</div>
+        <div>© {new Date().getFullYear()} Computing:Box • Created with ♥ by Alexander Lyall</div>
+        <div style="margin-top: 5px;">
+            <a href="/copyright" style="color: var(--muted); text-decoration: underline;">Copyright Notice</a> • 
+            <a href="/legal-code" style="color: var(--muted); text-decoration: underline;">Legal Code</a>
+        </div>
       </div>
     </footer>
   </body>
