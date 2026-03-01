@@ -1,0 +1,120 @@
+/* === FULL PAGE OVERRIDES FOR PC BUILDER === */
+body:has(#pcPage) { overflow: hidden; }
+body:has(#pcPage) .pageWrap {
+  max-width: 100% !important; padding: 0 !important; margin: 0 !important;
+  height: calc(100vh - var(--nav-h)); display: flex; flex-direction: column;
+}
+#pcPage { padding: 0 !important; margin: 0 !important; }
+
+/* === MAIN CONTAINER === */
+.pb-container { flex: 1; display: flex; flex-direction: column; position: relative; width: 100%; height: 100%; overflow: hidden; }
+
+/* === FIXED HEADER === */
+.pb-top-header {
+  width: 100%; text-align: center; padding: 8px 20px 8px; 
+  background: var(--bg); z-index: 10; flex-shrink: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  border-bottom: 1px solid rgba(255,255,255,0.08); 
+}
+.pb-title { font-family: var(--bit-font); font-size: 32px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text); margin: 0 0 2px 0; line-height: 1; }
+.pb-subtitle { color: var(--muted); font-size: 14px; font-family: var(--ui-font); font-weight: 500; margin: 0; line-height: 1.2; }
+.pb-subtitle kbd { background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-family: var(--ui-font); color: #e8e8ee; }
+
+/* === DYNAMIC CANVAS === */
+.pb-workspace {
+  flex: 1; position: relative; width: 100%; background-color: transparent; 
+  background-image: radial-gradient(rgba(255,255,255,0.08) 2px, transparent 2px);
+  background-size: 32px 32px; overflow: hidden; cursor: grab;
+}
+.pb-workspace:active { cursor: grabbing; }
+.pb-viewport { position: absolute; inset: 0; width: 100%; height: 100%; transform-origin: 0 0; pointer-events: none; }
+
+/* Zoom UI Controls */
+.pb-zoom-controls { position: absolute; bottom: 20px; left: 20px; z-index: 100; display: flex; gap: 8px; }
+.pb-zoom-btn {
+  width: 40px; height: 40px; border-radius: 8px; font-family: var(--ui-font); font-size: 22px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.5);
+  border: 1px solid rgba(255,255,255,0.15); color: #e8e8ee; cursor: pointer; backdrop-filter: blur(8px); transition: all 0.2s;
+}
+.pb-zoom-btn:hover { background: rgba(255,255,255,0.1); border-color: #55aaff; color: #55aaff; }
+
+/* Wires sit at the VERY FRONT so they are never hidden in the case */
+.pb-svg-layer { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 100; pointer-events: none; }
+
+/* Cables */
+.pb-wire {
+  stroke: rgba(255,255,255,0.25); stroke-width: 6; fill: none; stroke-linecap: round;
+  transition: stroke 0.1s ease, filter 0.1s ease, stroke-width 0.1s ease; pointer-events: stroke; cursor: pointer;
+}
+.pb-wire:hover { stroke: rgba(255,255,255,0.6); stroke-width: 10; }
+.pb-wire.active { stroke: #55aaff; filter: drop-shadow(0 0 6px rgba(85,170,255,0.6)); }
+.pb-wire.active:hover { stroke: #88ccff; }
+.pb-wire.selected { stroke: #ff5555 !important; stroke-width: 8 !important; stroke-dasharray: 8 8; filter: drop-shadow(0 0 8px rgba(255,85,85,0.8)) !important; animation: wireDash 1s linear infinite; }
+@keyframes wireDash { to { stroke-dashoffset: -16; } }
+.pb-wire-temp { stroke: rgba(255,255,255,0.4); stroke-dasharray: 8 8; pointer-events: none; }
+
+/* PC Parts */
+.pb-node {
+  position: absolute; background: transparent; border: none; border-radius: 0; padding: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: grab;
+  user-select: none; transition: filter 0.2s; pointer-events: auto;
+}
+.pb-node:active { cursor: grabbing; }
+.pb-node.selected { filter: drop-shadow(0 0 10px rgba(255,85,85,0.8)); }
+.pb-part-svg { width: 100%; height: 100%; display: block; pointer-events: none; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.5)); }
+
+/* Connection Ports */
+.pb-port {
+  width: 14px; height: 14px; background: #222; border-radius: 50%; cursor: crosshair;
+  border: 2px solid #55aaff; box-shadow: 0 0 0 1px rgba(255,255,255,0.2); transition: all 0.2s;
+  position: absolute; z-index: 200; transform: translate(-50%, -50%); pointer-events: auto;
+}
+.pb-port:hover { transform: translate(-50%, -50%) scale(1.4); background: #fff; }
+.pb-port.active { background: #55aaff; box-shadow: 0 0 12px rgba(85,170,255,0.8); }
+
+/* === ANIMATIONS (Triggered on Boot) === */
+@keyframes spin { 100% { transform: rotate(360deg); } }
+.system-running .fan-blades { animation: spin 0.4s linear infinite; }
+.system-running .monitor-screen { opacity: 1 !important; }
+
+/* === FLOATING TOOLBOX === */
+.pb-toolbox {
+  position: absolute; top: 60px; right: 20px; bottom: 20px; width: var(--toolbox-w, 360px);
+  z-index: 80; display: flex; flex-direction: column; gap: 16px; transform: translateX(0);
+  transition: transform 420ms cubic-bezier(.2,.9,.2,1), opacity 220ms ease; overflow-y: auto; pointer-events: auto; padding-right: 6px; 
+}
+.pb-toolbox::-webkit-scrollbar { width: 6px; }
+.pb-toolbox::-webkit-scrollbar-track { background: transparent; }
+.pb-toolbox::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); border-radius: 10px; transition: background 0.3s; }
+.pb-toolbox:hover::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); }
+.pb-container.toolboxCollapsed .pb-toolbox { transform: translateX(calc(100% + 40px)); opacity: 0; pointer-events: none; }
+
+.tb-icon-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.tb-icon-box {
+  background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; width: 100%; padding: 8px 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; cursor: grab; transition: background 0.2s, border-color 0.2s;
+}
+.tb-icon-box:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.3); }
+.tb-icon-label { font-family: var(--ui-font); font-size: 10px; font-weight: 800; color: var(--text); letter-spacing: 0px; text-transform: uppercase; text-align: center;}
+
+/* Diagnostics Panel */
+.specs-panel { width: 100%; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.4); padding: 12px; }
+.diag-cat { font-family: var(--ui-font); font-size: 12px; font-weight: 800; color: #55aaff; letter-spacing: 1px; text-transform: uppercase; margin: 12px 0 4px 0; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 2px;}
+.diag-cat:first-child { margin-top: 0; }
+.diag-row {
+  display: flex; justify-content: space-between; font-family: var(--bit-font); font-size: 16px; 
+  letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px;
+}
+
+/* === 3D INSPECT MODAL === */
+.inspect-modal {
+  position: fixed; inset: 0; background: rgba(10,11,15,0.95); z-index: 1000;
+  display: flex; align-items: center; justify-content: center; flex-direction: column;
+  opacity: 0; pointer-events: none; transition: opacity 0.3s ease; backdrop-filter: blur(10px);
+}
+.inspect-modal.active { opacity: 1; pointer-events: auto; }
+.inspect-close { position: absolute; top: 30px; right: 40px; font-size: 40px; color: var(--muted); cursor: pointer; transition: color 0.2s; }
+.inspect-close:hover { color: #ff5555; }
+.inspect-stage { width: 600px; height: 600px; perspective: 1200px; display: flex; align-items: center; justify-content: center; margin-top: 20px;}
+.inspect-object { width: 100%; height: 100%; transform-style: preserve-3d; transition: transform 0.1s cubic-bezier(0.2, 0.8, 0.2, 1); display: flex; align-items: center; justify-content: center; }
+.inspect-object svg { width: 100%; height: 100%; filter: drop-shadow(0 30px 40px rgba(0,0,0,0.8)); }

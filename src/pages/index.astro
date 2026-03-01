@@ -1,11 +1,23 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+import BaseLayout from "../layouts/BaseLayout.astro";
 ---
 
-<Layout>
-	<Welcome />
-</Layout>
+<BaseLayout title="Welcome | Computing:Box">
+  <div style="display: flex; align-items: center; justify-content: space-between; gap: 40px; min-height: 60vh; padding: 40px 0;">
+    <div style="flex: 1;">
+      <p style="color: var(--accent); font-weight: 800; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px;">Version 2.0 Now Live</p>
+      <h1 class="brandName" style="font-size: 48px; line-height: 1.1; margin-bottom: 24px;">Understand Computing concepts better.</h1>
+      <p style="font-size: 18px; color: var(--muted);">
+        Interactive simulators for Binary, Hexadecimal, Logic Gates, and Computer Components designed for the UK curriculum.
+      </p>
+      <div style="display: flex; gap: 16px; margin-top: 32px;">
+        <a href="/about" class="btn btnAccent" style="text-decoration: none; padding: 14px 28px;">Learn More</a>
+        <a href="/binary" class="btn" style="text-decoration: none; padding: 14px 28px;">Get Started</a>
+      </div>
+    </div>
+    
+    <div style="flex: 1; text-align: right;">
+      <img src="/images/computing-box-logo.svg" alt="Computing Box Logo" style="width: 100%; max-width: 450px; filter: drop-shadow(0 0 50px rgba(40, 240, 122, 0.15));" />
+    </div>
+  </div>
+</BaseLayout>

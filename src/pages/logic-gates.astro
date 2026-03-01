@@ -1,0 +1,56 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import "../styles/logic-gates.css";
+---
+
+<BaseLayout title="Logic Gate Builder | Computing:Box">
+  <div id="logicPage" class="lg-container">
+    
+    <button id="toolboxToggle" class="toolboxToggle" type="button" aria-expanded="true">
+      <span class="toolboxIcon" aria-hidden="true">🧰</span>
+      <span class="toolboxText">TOOLBOX</span>
+    </button>
+
+    <div class="lg-top-header">
+      <div class="lg-title">Interactive Logic Circuit Builder</div>
+      <div class="lg-subtitle">
+        Drag items from the toolbox. Drag from output ports to input ports to wire. Click a wire/node and press <kbd>Delete</kbd>. Scroll to Zoom.
+      </div>
+    </div>
+
+    <div class="lg-workspace" id="workspace">
+      
+      <div class="lg-zoom-controls">
+        <button class="lg-zoom-btn" id="btnZoomIn" title="Zoom In">+</button>
+        <button class="lg-zoom-btn" id="btnZoomOut" title="Zoom Out">−</button>
+        <button class="lg-zoom-btn" id="btnZoomReset" title="Reset View" style="font-size: 16px;">⌂</button>
+      </div>
+
+      <div class="lg-viewport" id="viewport">
+        <svg class="lg-svg-layer" id="wireLayer"></svg>
+        </div>
+      
+    </div>
+    
+    <aside id="toolboxPanel" class="lg-toolbox" aria-label="Toolbox">
+      <div class="card">
+        <div class="cardTitle">Components</div>
+        <div class="tb-icon-grid" id="toolboxGrid"></div>
+      </div>
+      <div class="card">
+        <div class="cardTitle">Live Truth Table</div>
+        <details open>
+          <summary class="tt-summary">Show / Hide Table</summary>
+          <div style="font-family: var(--ui-font); font-size: 12px; color: var(--muted); margin-bottom: 12px;">Auto-generates based on current wiring. (Max 6 inputs)</div>
+          <div class="tt-table-wrap" id="truthTableContainer"></div>
+        </details>
+      </div>
+      <div class="card">
+        <div class="cardTitle">Tools</div>
+        <button class="btn btnReset btnWide" id="btnClearBoard" type="button" style="margin-bottom:0;">Clear Board</button>
+      </div>
+    </aside>
+  </div>
+
+  <script src="../scripts/logicGates.js"></script>
+</BaseLayout>

@@ -3,8 +3,8 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import "../styles/number-simulators.css";
 ---
 
-<BaseLayout title="Binary Simulator | Computing:Box">
-  <div class="binaryPage" id="binaryPage">
+<BaseLayout title="Hexadecimal Simulator | Computing:Box">
+  <div class="binaryPage" id="hexPage">
     <button
       id="toolboxToggle"
       class="toolboxToggle"
@@ -21,53 +21,47 @@ import "../styles/number-simulators.css";
           <div class="label">Denary</div>
           <div id="denaryNumber" class="num denaryValue">0</div>
 
+          <div class="label">Hexadecimal</div>
+          <div id="hexNumber" class="num hexValue">00</div>
+
           <div class="label">Binary</div>
           <div id="binaryNumber" class="num binaryValue">00000000</div>
         </div>
 
         <div class="divider"></div>
 
-        <section class="bitsWrap" aria-label="Bit switches">
-          <div class="bitsGrid" id="bitsGrid"></div>
+        <section class="bitsWrap" aria-label="Hexadecimal sliders">
+          <div class="hexGrid" id="hexGrid"></div>
         </section>
       </div>
 
       <aside id="toolboxPanel" class="panelCol" aria-label="Toolbox">
         <div class="card">
           <div class="cardTitle">Settings</div>
-
-          <div class="toggleRow">
-            <div class="toggleLabel" id="lblUnsigned">Unsigned</div>
-            <label class="switch" aria-label="Toggle mode">
-              <input id="modeToggle" type="checkbox" />
-              <span class="slider"></span>
-            </label>
-            <div class="toggleLabel" id="lblTwos">Two's complement</div>
-          </div>
-
-          <div class="hint" id="modeHint">
-            Tip: In unsigned binary, all bits represent positive values.
+          
+          <div class="hint" style="margin-top: 0; margin-bottom: 14px;">
+            Hexadecimal represents numbers using base 16 (0-9, A-F).
           </div>
 
           <div class="subCard">
-            <div class="subTitle">Bit width</div>
+            <div class="subTitle">Digit width</div>
             <div class="bitWidthRow">
-              <button class="miniBtn" id="btnBitsDown" type="button" aria-label="Decrease bits">−</button>
+              <button class="miniBtn" id="btnDigitsDown" type="button" aria-label="Decrease digits">−</button>
               <div class="bitInputWrap">
-                <div class="bitInputLabel">Bits</div>
+                <div class="bitInputLabel">Digits</div>
                 <input
-                  id="bitsInput"
+                  id="digitsInput"
                   class="bitInput"
                   type="number"
                   inputmode="numeric"
                   min="1"
-                  max="64"
+                  max="16"
                   step="1"
-                  value="8"
-                  aria-label="Number of bits"
+                  value="2"
+                  aria-label="Number of hex digits"
                 />
               </div>
-              <button class="miniBtn" id="btnBitsUp" type="button" aria-label="Increase bits">+</button>
+              <button class="miniBtn" id="btnDigitsUp" type="button" aria-label="Increase digits">+</button>
             </div>
           </div>
         </div>
@@ -75,8 +69,11 @@ import "../styles/number-simulators.css";
         <div class="card">
           <div class="cardTitle">Custom Number</div>
           <div class="controlsRow">
-            <button class="btn btnAccent btnHalf" id="btnCustomBinary" type="button">Custom Binary</button>
+            <button class="btn btnAccent btnHalf" id="btnCustomHex" type="button">Custom Hex</button>
             <button class="btn btnAccent btnHalf" id="btnCustomDenary" type="button">Custom Denary</button>
+          </div>
+          <div class="controlsRow">
+            <button class="btn btnAccent btnWide" id="btnCustomBinary" type="button">Custom Binary</button>
           </div>
           <button class="btn btnWide" id="btnRandom" type="button">Random</button>
           <div class="hint">Random runs briefly then stops automatically.</div>
@@ -88,15 +85,11 @@ import "../styles/number-simulators.css";
             <button class="toolBtn toolSpin toolDec" id="btnDec" type="button" aria-label="Decrement">▼</button>
             <button class="toolBtn toolSpin toolInc" id="btnInc" type="button" aria-label="Increment">▲</button>
           </div>
-          <div class="toolRow2">
-            <button class="btn btnHalf" id="btnShiftLeft" type="button">Left Shift</button>
-            <button class="btn btnHalf" id="btnShiftRight" type="button">Right Shift</button>
-          </div>
           <button class="btn btnReset btnWide" id="btnClear" type="button">Reset</button>
         </div>
       </aside>
     </section>
   </div>
 
-  <script src="../scripts/binary.js"></script>
+  <script src="../scripts/hexadecimal.js"></script>
 </BaseLayout>

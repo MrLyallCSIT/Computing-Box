@@ -1,0 +1,100 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import "../styles/number-simulators.css";
+---
+
+<BaseLayout title="Hex Colours Simulator | Computing:Box">
+  <div class="binaryPage" id="colorPage">
+    <button
+      id="toolboxToggle"
+      class="toolboxToggle"
+      type="button"
+      aria-expanded="true"
+    >
+      <span class="toolboxIcon" aria-hidden="true">🧰</span>
+      <span class="toolboxText">TOOLBOX</span>
+    </button>
+
+    <section class="topGrid">
+      <div class="leftCol">
+        
+        <div class="readoutContainer">
+          <div class="readout">
+            <div class="readoutBlock">
+              <div class="label">Denary (R, G, B)</div>
+              <div id="denaryNumber" class="num denaryValue">
+                <span class="text-red">0</span>
+                <span class="text-green">0</span>
+                <span class="text-blue">0</span>
+              </div>
+            </div>
+
+            <div class="readoutBlock">
+              <div class="label">Hexadecimal</div>
+              <div id="hexNumber" class="num hexValue">
+                <span class="text-red"><span style="color:var(--muted)">#</span>00</span>
+                <span class="text-green">00</span>
+                <span class="text-blue">00</span>
+              </div>
+            </div>
+
+            <div class="readoutBlock">
+              <div class="label">Binary</div>
+              <div id="binaryNumber" class="num binaryValue">
+                <span class="text-red">00000000</span>
+                <span class="text-green">00000000</span>
+                <span class="text-blue">00000000</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="colorPreviewSide">
+            <div class="colorBoxWrap">
+              <div id="previewColor" class="colorBox"></div>
+              <div class="colorBoxLabel">Colour</div>
+            </div>
+            <div class="colorBoxWrap">
+              <div id="previewInverted" class="colorBox"></div>
+              <div class="colorBoxLabel">Inverted</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <section class="bitsWrap" aria-label="Hex Colour Cards">
+          <div class="colorGroupWrap" id="colorGrid"></div>
+        </section>
+      </div>
+
+      <aside id="toolboxPanel" class="panelCol" aria-label="Toolbox">
+        <div class="card">
+          <div class="cardTitle">Info</div>
+          <div class="hint" style="margin-top: 0;">
+            Hexadecimal colours are made of 3 channels (Red, Green, Blue). Each channel is an 8-bit value ranging from 00 to FF (0 to 255).
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="cardTitle">Colour Tools</div>
+          <div class="controlsRow">
+            <button class="btn btnAccent btnHalf" id="btnCustomHex" type="button">Custom Hex</button>
+            <button class="btn btnAccent btnHalf" id="btnCustomRGB" type="button">Custom RGB</button>
+          </div>
+          <div class="controlsRow">
+            <button class="btn btnAccent btnWide" id="btnInvert" type="button">Invert Colour</button>
+          </div>
+          <button class="btn btnWide" id="btnRandom" type="button">Random Colour</button>
+          <div class="hint">Random runs briefly then stops automatically.</div>
+        </div>
+
+        <div class="card">
+          <div class="cardTitle">Tools</div>
+          <button class="btn btnReset btnWide" id="btnClear" type="button">Reset</button>
+        </div>
+      </aside>
+    </section>
+  </div>
+
+  <script src="../scripts/hexColours.js"></script>
+</BaseLayout>

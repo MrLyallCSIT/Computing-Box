@@ -1,0 +1,63 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import "../styles/pc-builder.css";
+---
+
+<BaseLayout title="PC Part Simulator | Computing:Box">
+  <div id="pcPage" class="pb-container">
+    
+    <button id="toolboxToggle" class="toolboxToggle" type="button" aria-expanded="true">
+      <span class="toolboxIcon" aria-hidden="true">🧰</span>
+      <span class="toolboxText">TOOLBOX</span>
+    </button>
+
+    <div class="pb-top-header">
+      <div class="pb-title">PC Part Simulator</div>
+      <div class="pb-subtitle">
+        Build inside the Case! Snap the Motherboard into the chassis, then populate the slots. Add the side panel when done. <strong>Double-Click</strong> parts to inspect in 3D.
+      </div>
+    </div>
+
+    <div class="pb-workspace" id="workspace">
+      <div class="pb-zoom-controls">
+        <button class="pb-zoom-btn" id="btnZoomIn" title="Zoom In">+</button>
+        <button class="pb-zoom-btn" id="btnZoomOut" title="Zoom Out">−</button>
+        <button class="pb-zoom-btn" id="btnZoomReset" title="Reset View" style="font-size: 16px;">⌂</button>
+      </div>
+
+      <div class="pb-viewport" id="viewport">
+        <svg class="pb-svg-layer" id="wireLayer"></svg>
+      </div>
+    </div>
+    
+    <aside id="toolboxPanel" class="pb-toolbox" aria-label="Toolbox">
+      <div class="card">
+        <div class="cardTitle">Inventory</div>
+        <div class="tb-icon-grid" id="toolboxGrid"></div>
+      </div>
+
+      <div class="card">
+        <div class="cardTitle">System Diagnostics</div>
+        <div style="font-family: var(--ui-font); font-size: 12px; color: var(--muted); margin-bottom: 12px;">Live pre-flight boot analysis.</div>
+        <div class="specs-panel" id="buildSpecsContainer"></div>
+      </div>
+
+      <div class="card">
+        <div class="cardTitle">Tools</div>
+        <button class="btn btnReset btnWide" id="btnClearBoard" type="button" style="margin-bottom:0;">Disassemble PC</button>
+      </div>
+    </aside>
+
+    <div id="inspectModal" class="inspect-modal">
+       <div class="inspect-close" id="inspectClose">&times;</div>
+       <div id="inspectName" style="color: white; font-family: var(--ui-font); font-size: 28px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase;"></div>
+       <div class="inspect-stage" id="inspectStage">
+          <div class="inspect-object" id="inspectObject"></div>
+       </div>
+       <div style="color: var(--muted); font-family: var(--ui-font); margin-top: 20px; font-size: 14px;">Move mouse to rotate component. Scroll to zoom.</div>
+    </div>
+
+  </div>
+
+  <script src="../scripts/pcBuilder.js"></script>
+</BaseLayout>
