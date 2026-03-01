@@ -54,13 +54,13 @@ const { title = "Computing:Box" } = Astro.props;
     </main>
 
     <footer class="siteFooter">
-      <div class="footerInner">
+        <div class="footerInner">
+          <div style="margin-top: 5px; display: flex; justify-content: center;">
+              <a href="/copyright" style="color: var(--muted); text-decoration: underline;">Copyright Notice</a>
+              <a href="/legal-code" style="margin-left: 32px; color: var(--muted); text-decoration: underline;">Legal Code</a>
+          </div>
         <div>Computer Science Concept Simulators</div>
-        <div>© {new Date().getFullYear()} Computing:Box • Created with ♥ by Alexander Lyall</div>
-        <div style="margin-top: 5px;">
-            <a href="/copyright" style="color: var(--muted); text-decoration: underline;">Copyright Notice</a> • 
-            <a href="/legal-code" style="color: var(--muted); text-decoration: underline;">Legal Code</a>
-        </div>
+        <div>© {new Date().getFullYear()} Computing:Box • Created with ♥ by Mr A Lyall</div>
       </div>
     </footer>
   </body>

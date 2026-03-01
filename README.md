@@ -28,18 +28,19 @@ An evolution of Bit:Box & CS:Box to incorporate different elements of the UK Com
 - [X] XNOR Gate Simulator
 
 ### Wave 3 CS:Box Features (Spring 2026)
-- [ ] New User Interface (Responsive)
+- [X] New User Interface (Responsive)
 - [X] Two's Compliment Simulator
 - [X] Extended Binary Simulator (Custom bit sizes)
 - [X] Unified Binary Simulator (Unsigned & Two's Completment combined)
-- [ ] Extended Hexadecimal Simulator
-- [ ] Unified Hexadecimal Simulator (For GCSE & A Level Specification)
-- [ ] Enhanced Gate Simulator (Truth Table Creator)
-- [ ] Compound Gate Simulator
-- [ ] Computer Components Simulator
+- [X] Extended Hexadecimal Simulator
+- [X] Unified Hexadecimal Simulator (For GCSE & A Level Specification)
+- [X] Enhanced Gate Simulator (Truth Table Creator)
+- [X] Compound Gate Simulator
+- [X] Computer Components Simulator - Beta Available
 
 ## Version 1.0 Release Date: 1<sup>st</sup> September 2025
-## Version 2.0 Release Date (Goal): 1<sup>st</sup> May 2026
+## Version 2.0 Release Date (Beta): 1<sup>st</sup> March 2026
+## Version 2.0 Release Date (Full Release): 1<sup>st</sup> May 2026
 
 Shield: [![CC BY-NC-SA 4.0][cc-by-nc-sa-shield]][cc-by-nc-sa]
 
