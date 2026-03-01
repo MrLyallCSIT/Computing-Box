@@ -1,6 +1,3 @@
-// src/scripts/binary.js
-// Computing:Box — Binary page logic (Unsigned + Two's Complement)
-
 (() => {
   /* -----------------------------
      DOM
@@ -12,6 +9,10 @@
 
   const modeToggle = document.getElementById("modeToggle");
   const modeHint = document.getElementById("modeHint");
+  
+  // Connect the text labels to the JS
+  const lblUnsigned = document.getElementById("lblUnsigned");
+  const lblTwos = document.getElementById("lblTwos");
 
   const btnCustomBinary = document.getElementById("btnCustomBinary");
   const btnCustomDenary = document.getElementById("btnCustomDenary");
@@ -27,14 +28,13 @@
   const btnBitsDown = document.getElementById("btnBitsDown");
 
   const toolboxToggle = document.getElementById("toolboxToggle");
-  const toolboxPanel = document.getElementById("toolboxPanel");
+  const binaryPage = document.getElementById("binaryPage");
 
   /* -----------------------------
      STATE
   ----------------------------- */
   let bitCount = clampInt(Number(bitsInput?.value ?? 8), 1, 64);
   let bits = new Array(bitCount).fill(false);
-
   let randomTimer = null;
 
   /* -----------------------------
@@ -54,7 +54,7 @@
   }
 
   function unsignedMaxExclusive(nBits) {
-    return pow2Big(nBits);
+    return pow2Big(nBits); 
   }
 
   function unsignedMaxValue(nBits) {
@@ -94,7 +94,8 @@
 
   function signedBigIntToBitsTwos(vSigned) {
     const span = pow2Big(bitCount);
-    let v = ((vSigned % span) + span) % span;
+    let v = vSigned;
+    v = ((v % span) + span) % span;
     unsignedBigIntToBits(v);
   }
 
@@ -102,17 +103,33 @@
     let s = "";
     for (let i = bitCount - 1; i >= 0; i--) {
       s += bits[i] ? "1" : "0";
-      const posFromRight = (bitCount - i);
-      if (i !== 0 && posFromRight % 4 === 0) s += " ";
+      const posFromLeft = (bitCount - i);
+      if (i !== 0 && posFromLeft % 4 === 0) s += " ";
     }
-    return s;
+    return s.trimEnd();
   }
 
   function updateModeHint() {
     if (!modeHint) return;
-    modeHint.textContent = isTwosMode()
-      ? "Tip: In two’s complement, the left-most bit (MSB) represents a negative value."
-      : "Tip: In unsigned binary, all bits represent positive values.";
+    if (isTwosMode()) {
+      modeHint.textContent = "Tip: In two's complement, the left-most bit (MSB) represents a negative value.";
+    } else {
+      modeHint.textContent = "Tip: In unsigned binary, all bits represent positive values.";
+    }
+  }
+
+  /* -----------------------------
+     RESPONSIVE GRID COLS
+  ----------------------------- */
+  function computeColsForBitsGrid() {
+    if (!bitsGrid) return;
+    const wrap = bitsGrid.parentElement;
+    if (!wrap) return;
+
+    const width = wrap.getBoundingClientRect().width;
+    const minCell = 100; 
+    const cols = clampInt(Math.floor(width / minCell), 1, 12);
+    bitsGrid.style.setProperty("--cols", String(Math.min(cols, bitCount)));
   }
 
   /* -----------------------------
@@ -127,18 +144,25 @@
     for (let i = 0; i < Math.min(oldBits.length, bitCount); i++) bits[i] = oldBits[i];
 
     bitsGrid.innerHTML = "";
+    bitsGrid.classList.toggle("bitsFew", bitCount < 8);
 
     for (let i = bitCount - 1; i >= 0; i--) {
       const bitEl = document.createElement("div");
       bitEl.className = "bit";
+
       bitEl.innerHTML = `
-        <div class="bulb" id="bulb-${i}" aria-hidden="true">💡</div>
+        <div class="bulb" id="bulb-${i}" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2.25a6.75 6.75 0 0 0-6.75 6.75c0 2.537 1.393 4.75 3.493 5.922l.507.282v1.546h5.5v-1.546l.507-.282A6.75 6.75 0 0 0 12 2.25Zm-2.25 16.5v.75a2.25 2.25 0 0 0 4.5 0v-.75h-4.5Z"/>
+          </svg>
+        </div>
         <div class="bitVal" id="bitLabel-${i}"></div>
         <label class="switch" aria-label="Toggle bit ${i}">
           <input type="checkbox" data-index="${i}">
           <span class="slider"></span>
         </label>
       `;
+
       bitsGrid.appendChild(bitEl);
     }
 
@@ -150,6 +174,7 @@
       });
     });
 
+    computeColsForBitsGrid();
     updateUI();
   }
 
@@ -161,14 +186,14 @@
       const label = document.getElementById(`bitLabel-${i}`);
       if (!label) continue;
 
-      // Keep label on ONE LINE (no wrapping)
-      label.style.whiteSpace = "nowrap";
-
+      let valStr;
       if (isTwosMode() && i === bitCount - 1) {
-        label.textContent = `-${pow2Big(bitCount - 1).toString()}`;
+        valStr = `-${pow2Big(bitCount - 1).toString()}`;
       } else {
-        label.textContent = pow2Big(i).toString();
+        valStr = pow2Big(i).toString();
       }
+      label.textContent = valStr;
+      label.style.setProperty('--len', valStr.length);
     }
   }
 
@@ -189,12 +214,23 @@
 
   function updateReadout() {
     if (!denaryEl || !binaryEl) return;
-    denaryEl.textContent = (isTwosMode() ? bitsToSignedBigIntTwos() : bitsToUnsignedBigInt()).toString();
+    if (isTwosMode()) {
+      denaryEl.textContent = bitsToSignedBigIntTwos().toString();
+    } else {
+      denaryEl.textContent = bitsToUnsignedBigInt().toString();
+    }
     binaryEl.textContent = formatBinaryGrouped();
   }
 
   function updateUI() {
     updateModeHint();
+    
+    // Toggle the glowing CSS class on the active mode text
+    if (lblUnsigned && lblTwos) {
+      lblUnsigned.classList.toggle("activeMode", !isTwosMode());
+      lblTwos.classList.toggle("activeMode", isTwosMode());
+    }
+
     updateBitLabels();
     syncSwitchesToBits();
     updateBulbs();
@@ -202,20 +238,25 @@
   }
 
   /* -----------------------------
-     INPUT SETTERS
+     SET FROM BINARY STRING
   ----------------------------- */
   function setFromBinaryString(binStr) {
     const clean = String(binStr ?? "").replace(/\s+/g, "");
     if (!/^[01]+$/.test(clean)) return false;
+
     const padded = clean.slice(-bitCount).padStart(bitCount, "0");
     for (let i = 0; i < bitCount; i++) {
       const charFromRight = padded[padded.length - 1 - i];
       bits[i] = charFromRight === "1";
     }
+
     updateUI();
     return true;
   }
 
+  /* -----------------------------
+     SET FROM DENARY INPUT
+  ----------------------------- */
   function setFromDenaryInput(vStr) {
     const raw = String(vStr ?? "").trim();
     if (!raw) return false;
@@ -224,9 +265,7 @@
     try {
       if (!/^-?\d+$/.test(raw)) return false;
       v = BigInt(raw);
-    } catch {
-      return false;
-    }
+    } catch { return false; }
 
     if (isTwosMode()) {
       const min = twosMin(bitCount);
@@ -234,8 +273,7 @@
       if (v < min || v > max) return false;
       signedBigIntToBitsTwos(v);
     } else {
-      if (v < 0n) return false;
-      if (v > unsignedMaxValue(bitCount)) return false;
+      if (v < 0n || v > unsignedMaxValue(bitCount)) return false;
       unsignedBigIntToBits(v);
     }
 
@@ -247,18 +285,14 @@
      SHIFTS
   ----------------------------- */
   function shiftLeft() {
-    for (let i = bitCount - 1; i >= 1; i--) bits[i] = bits[i - 1];
+    for (let i = bitCount - 1; i >= 1; i--) { bits[i] = bits[i - 1]; }
     bits[0] = false;
     updateUI();
   }
 
   function shiftRight() {
-    // Unsigned: logical right shift (MSB becomes 0)
-    // Two's complement: arithmetic right shift (MSB preserved)
     const msb = bits[bitCount - 1];
-
-    for (let i = 0; i < bitCount - 1; i++) bits[i] = bits[i + 1];
-
+    for (let i = 0; i < bitCount - 1; i++) { bits[i] = bits[i + 1]; }
     bits[bitCount - 1] = isTwosMode() ? msb : false;
     updateUI();
   }
@@ -267,8 +301,9 @@
      CLEAR / INC / DEC
   ----------------------------- */
   function clearAll() {
-    bits.fill(false);
-    updateUI();
+    bits = []; 
+    if (modeToggle) modeToggle.checked = false; 
+    buildBits(8); 
   }
 
   function increment() {
@@ -280,8 +315,7 @@
       signedBigIntToBitsTwos(v);
     } else {
       const span = unsignedMaxExclusive(bitCount);
-      const v = (bitsToUnsignedBigInt() + 1n) % span;
-      unsignedBigIntToBits(v);
+      unsignedBigIntToBits((bitsToUnsignedBigInt() + 1n) % span);
     }
     updateUI();
   }
@@ -295,25 +329,22 @@
       signedBigIntToBitsTwos(v);
     } else {
       const span = unsignedMaxExclusive(bitCount);
-      const v = (bitsToUnsignedBigInt() - 1n + span) % span;
-      unsignedBigIntToBits(v);
+      unsignedBigIntToBits((bitsToUnsignedBigInt() - 1n + span) % span);
     }
     updateUI();
   }
 
   /* -----------------------------
-     RANDOM (with running pulse + longer run)
+     RANDOM
   ----------------------------- */
   function cryptoRandomBigInt(maxExclusive) {
     if (maxExclusive <= 0n) return 0n;
-
     const bitLen = maxExclusive.toString(2).length;
     const byteLen = Math.ceil(bitLen / 8);
 
     while (true) {
       const bytes = new Uint8Array(byteLen);
       crypto.getRandomValues(bytes);
-
       let x = 0n;
       for (const b of bytes) x = (x << 8n) | BigInt(b);
 
@@ -325,10 +356,15 @@
   }
 
   function setRandomOnce() {
-    const span = unsignedMaxExclusive(bitCount); // 2^n
+    const span = unsignedMaxExclusive(bitCount);
     const u = cryptoRandomBigInt(span);
     unsignedBigIntToBits(u);
     updateUI();
+  }
+
+  function setRandomRunning(isRunning) {
+    if (!btnRandom) return;
+    btnRandom.classList.toggle("btnRandomRunning", !!isRunning);
   }
 
   function runRandomBriefly() {
@@ -337,11 +373,9 @@
       randomTimer = null;
     }
 
-    // pulse while running
-    btnRandom?.classList.add("is-running");
-
+    setRandomRunning(true);
     const start = Date.now();
-    const durationMs = 1125; // 25% longer than 900ms
+    const durationMs = 1125; 
     const tickMs = 80;
 
     randomTimer = setInterval(() => {
@@ -349,25 +383,27 @@
       if (Date.now() - start >= durationMs) {
         clearInterval(randomTimer);
         randomTimer = null;
-        btnRandom?.classList.remove("is-running");
+        setRandomRunning(false);
       }
     }, tickMs);
   }
 
   /* -----------------------------
-     BIT WIDTH
+     BIT WIDTH CONTROLS
   ----------------------------- */
   function setBitWidth(n) {
-    buildBits(clampInt(n, 1, 64));
+    const v = clampInt(n, 1, 64);
+    buildBits(v);
   }
 
   /* -----------------------------
-     TOOLBOX VISIBILITY
+     TOOLBOX TOGGLE
   ----------------------------- */
-  function setToolboxVisible(isVisible) {
-    if (!toolboxPanel) return;
-    toolboxPanel.style.display = isVisible ? "flex" : "none";
-    toolboxToggle?.setAttribute("aria-expanded", String(isVisible));
+  function setToolboxCollapsed(collapsed) {
+    if (!binaryPage) return;
+    binaryPage.classList.toggle("toolboxCollapsed", !!collapsed);
+    const expanded = !collapsed;
+    toolboxToggle?.setAttribute("aria-expanded", expanded ? "true" : "false");
   }
 
   /* -----------------------------
@@ -384,8 +420,8 @@
   btnCustomDenary?.addEventListener("click", () => {
     const v = prompt(
       isTwosMode()
-        ? `Enter denary (${twosMin(bitCount)} to ${twosMax(bitCount)}):`
-        : `Enter denary (0 to ${unsignedMaxValue(bitCount)}):`
+        ? `Enter denary (${twosMin(bitCount).toString()} to ${twosMax(bitCount).toString()}):`
+        : `Enter denary (0 to ${unsignedMaxValue(bitCount).toString()}):`
     );
     if (v === null) return;
     if (!setFromDenaryInput(v)) alert("Invalid denary for current mode/bit width");
@@ -406,8 +442,12 @@
   bitsInput?.addEventListener("change", () => setBitWidth(Number(bitsInput.value)));
 
   toolboxToggle?.addEventListener("click", () => {
-    const isOpen = toolboxToggle.getAttribute("aria-expanded") !== "false";
-    setToolboxVisible(!isOpen);
+    const isCollapsed = binaryPage?.classList.contains("toolboxCollapsed");
+    setToolboxCollapsed(!isCollapsed);
+  });
+
+  window.addEventListener("resize", () => {
+    computeColsForBitsGrid();
   });
 
   /* -----------------------------
@@ -415,5 +455,5 @@
   ----------------------------- */
   updateModeHint();
   buildBits(bitCount);
-  setToolboxVisible(true);
+  setToolboxCollapsed(false);
 })();

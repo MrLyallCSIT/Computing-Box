@@ -1,24 +1,27 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import "../styles/binary.css";
 ---
 
-<BaseLayout title="Binary Simulator">
-  <button id="toolboxToggle" class="toolboxToggle" type="button" aria-expanded="true">
-    <span class="toolboxIcon" aria-hidden="true">🧰</span>
-    <span class="toolboxLabel">TOOLBOX</span>
-  </button>
+<BaseLayout title="Binary Simulator | Computing:Box">
+  <div class="binaryPage" id="binaryPage">
+    <button
+      id="toolboxToggle"
+      class="toolboxToggle"
+      type="button"
+      aria-expanded="true"
+    >
+      <span class="toolboxIcon" aria-hidden="true">🧰</span>
+      <span class="toolboxText">TOOLBOX</span>
+    </button>
 
-  <main class="wrap">
     <section class="topGrid">
-      <!-- LEFT -->
-      <div>
+      <div class="leftCol">
         <div class="readout">
           <div class="label">Denary</div>
           <div id="denaryNumber" class="num denaryValue">0</div>
 
           <div class="label">Binary</div>
-          <div id="binaryNumber" class="num binaryValue">0000 0000</div>
+          <div id="binaryNumber" class="num binaryValue">00000000</div>
         </div>
 
         <div class="divider"></div>
@@ -28,9 +31,7 @@ import "../styles/binary.css";
         </section>
       </div>
 
-      <!-- RIGHT TOOLBOX -->
-      <aside id="toolbox" class="panelCol" aria-label="Toolbox">
-        <!-- SETTINGS -->
+      <aside id="toolboxPanel" class="panelCol" aria-label="Toolbox">
         <div class="card">
           <div class="cardTitle">Settings</div>
 
@@ -40,7 +41,7 @@ import "../styles/binary.css";
               <input id="modeToggle" type="checkbox" />
               <span class="slider"></span>
             </label>
-            <div class="toggleLabel" id="lblTwos">Two&rsquo;s complement</div>
+            <div class="toggleLabel" id="lblTwos">Two's complement</div>
           </div>
 
           <div class="hint" id="modeHint">
@@ -51,7 +52,6 @@ import "../styles/binary.css";
             <div class="subTitle">Bit width</div>
             <div class="bitWidthRow">
               <button class="miniBtn" id="btnBitsDown" type="button" aria-label="Decrease bits">−</button>
-
               <div class="bitInputWrap">
                 <div class="bitInputLabel">Bits</div>
                 <input
@@ -66,47 +66,36 @@ import "../styles/binary.css";
                   aria-label="Number of bits"
                 />
               </div>
-
               <button class="miniBtn" id="btnBitsUp" type="button" aria-label="Increase bits">+</button>
             </div>
           </div>
         </div>
 
-        <!-- CUSTOM -->
         <div class="card">
-          <div class="cardTitle">Custom</div>
-
-          <div class="twoBtnRow">
-            <button class="btn btnAccent" id="btnCustomBinary" type="button">Custom Binary</button>
-            <button class="btn btnAccent" id="btnCustomDenary" type="button">Custom Denary</button>
+          <div class="cardTitle">Custom Number</div>
+          <div class="controlsRow">
+            <button class="btn btnAccent btnHalf" id="btnCustomBinary" type="button">Custom Binary</button>
+            <button class="btn btnAccent btnHalf" id="btnCustomDenary" type="button">Custom Denary</button>
           </div>
-
-          <button class="toolBtn toolWide toolRandom" id="btnRandom" type="button">
-            Random
-          </button>
-
+          <button class="btn btnWide" id="btnRandom" type="button">Random</button>
           <div class="hint">Random runs briefly then stops automatically.</div>
         </div>
 
-        <!-- TOOLS -->
         <div class="card">
           <div class="cardTitle">Tools</div>
-
-          <div class="toolsTopRow">
-            <button class="toolBtn toolArrow toolDown" id="btnDec" type="button" aria-label="Decrement">▼</button>
-            <button class="toolBtn toolArrow toolUp" id="btnInc" type="button" aria-label="Increment">▲</button>
+          <div class="toolRowCentered">
+            <button class="toolBtn toolSpin toolDec" id="btnDec" type="button" aria-label="Decrement">▼</button>
+            <button class="toolBtn toolSpin toolInc" id="btnInc" type="button" aria-label="Increment">▲</button>
           </div>
-
-          <div class="twoBtnRow">
-            <button class="btn" id="btnShiftLeft" type="button">Left Shift</button>
-            <button class="btn" id="btnShiftRight" type="button">Right Shift</button>
+          <div class="toolRow2">
+            <button class="btn btnHalf" id="btnShiftLeft" type="button">Left Shift</button>
+            <button class="btn btnHalf" id="btnShiftRight" type="button">Right Shift</button>
           </div>
-
-          <button class="toolBtn toolWide toolReset" id="btnClear" type="button">Reset</button>
+          <button class="btn btnReset btnWide" id="btnClear" type="button">Reset</button>
         </div>
       </aside>
     </section>
-  </main>
+  </div>
 
-  <script type="module" src="/src/scripts/binary.js"></script>
+  <script src="../scripts/binary.js"></script>
 </BaseLayout>

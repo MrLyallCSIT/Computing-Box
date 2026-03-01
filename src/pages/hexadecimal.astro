@@ -1,8 +1,94 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import HexSimulator from "../components/simulators/HexSimulator.astro";
 ---
 
-<BaseLayout title="Hexadecimal | Computing:Box">
-  <HexSimulator />
+<BaseLayout title="Hexadecimal Simulator | Computing:Box">
+  <div class="binaryPage" id="hexPage">
+    <button
+      id="toolboxToggle"
+      class="toolboxToggle"
+      type="button"
+      aria-expanded="true"
+    >
+      <span class="toolboxIcon" aria-hidden="true">🧰</span>
+      <span class="toolboxText">TOOLBOX</span>
+    </button>
+
+    <section class="topGrid">
+      <div class="leftCol">
+        <div class="readout">
+          <div class="label">Denary</div>
+          <div id="denaryNumber" class="num denaryValue">0</div>
+
+          <div class="label">Hexadecimal</div>
+          <div id="hexNumber" class="num hexValue">00</div>
+
+          <div class="label">Binary</div>
+          <div id="binaryNumber" class="num binaryValue">00000000</div>
+        </div>
+
+        <div class="divider"></div>
+
+        <section class="bitsWrap" aria-label="Hexadecimal sliders">
+          <div class="hexGrid" id="hexGrid"></div>
+        </section>
+      </div>
+
+      <aside id="toolboxPanel" class="panelCol" aria-label="Toolbox">
+        <div class="card">
+          <div class="cardTitle">Settings</div>
+          
+          <div class="hint" style="margin-top: 0; margin-bottom: 14px;">
+            Hexadecimal represents numbers using base 16 (0-9, A-F).
+          </div>
+
+          <div class="subCard">
+            <div class="subTitle">Digit width</div>
+            <div class="bitWidthRow">
+              <button class="miniBtn" id="btnDigitsDown" type="button" aria-label="Decrease digits">−</button>
+              <div class="bitInputWrap">
+                <div class="bitInputLabel">Digits</div>
+                <input
+                  id="digitsInput"
+                  class="bitInput"
+                  type="number"
+                  inputmode="numeric"
+                  min="1"
+                  max="16"
+                  step="1"
+                  value="2"
+                  aria-label="Number of hex digits"
+                />
+              </div>
+              <button class="miniBtn" id="btnDigitsUp" type="button" aria-label="Increase digits">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="cardTitle">Custom Number</div>
+          <div class="controlsRow">
+            <button class="btn btnAccent btnHalf" id="btnCustomHex" type="button">Custom Hex</button>
+            <button class="btn btnAccent btnHalf" id="btnCustomDenary" type="button">Custom Denary</button>
+          </div>
+          <div class="controlsRow">
+            <button class="btn btnAccent btnWide" id="btnCustomBinary" type="button">Custom Binary</button>
+          </div>
+          <button class="btn btnWide" id="btnRandom" type="button">Random</button>
+          <div class="hint">Random runs briefly then stops automatically.</div>
+        </div>
+
+        <div class="card">
+          <div class="cardTitle">Tools</div>
+          <div class="toolRowCentered">
+            <button class="toolBtn toolSpin toolDec" id="btnDec" type="button" aria-label="Decrement">▼</button>
+            <button class="toolBtn toolSpin toolInc" id="btnInc" type="button" aria-label="Increment">▲</button>
+          </div>
+          <button class="btn btnReset btnWide" id="btnClear" type="button">Reset</button>
+        </div>
+      </aside>
+    </section>
+  </div>
+
+  <script src="../scripts/hexadecimal.js"></script>
 </BaseLayout>

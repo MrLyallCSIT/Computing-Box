@@ -1,7 +1,7 @@
 {
-  "name": "Computing:Box",
+  "name": "computing-box",
   "type": "module",
-  "version": "2.0.0 Alpha",
+  "version": "0.0.1",
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
@@ -9,6 +9,6 @@
     "astro": "astro"
   },
   "dependencies": {
-    "astro": "^5.16.6"
+    "astro": "^5.18.0"
   }
 }

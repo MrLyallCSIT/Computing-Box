@@ -1,0 +1,63 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import "../styles/logic-gates.css";
+---
+
+<BaseLayout title="Logic Gate Builder | Computing:Box">
+  <div class="binaryPage" id="logicPage">
+    
+    <button id="toolboxToggle" class="toolboxToggle" type="button" aria-expanded="true">
+      <span class="toolboxIcon" aria-hidden="true">🧰</span>
+      <span class="toolboxText">TOOLBOX</span>
+    </button>
+
+    <section class="topGrid" style="display:flex; flex-direction:column; height: 100%;">
+      
+      <div class="readout">
+        <div class="readoutBlock">
+          <div class="label" style="margin-bottom: 8px;">Interactive Simulator</div>
+          <div class="num denaryValue" style="font-size: 56px; line-height: 1;">LOGIC GATES</div>
+        </div>
+        <div style="color: var(--muted); font-size: 15px; font-family: var(--ui-font); text-align: center; max-width: 800px; margin-top: 12px;">
+          Drag items from the toolbox to the board. Drag from output ports to input ports to wire. Click a wire or node and press <kbd style="background:rgba(255,255,255,0.1); padding:2px 6px; border-radius:4px; font-family:var(--ui-font);">Delete</kbd> to remove it.
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="lg-workspace" id="workspace">
+        <svg class="lg-svg-layer" id="wireLayer"></svg>
+        </div>
+      
+    </section>
+
+    <aside id="toolboxPanel" class="panelCol" aria-label="Toolbox">
+      
+      <div class="card">
+        <div class="cardTitle">Components</div>
+        
+        <div class="tb-icon-grid" id="toolboxGrid">
+          </div>
+
+      </div>
+
+      <div class="card">
+        <div class="cardTitle">Live Truth Table</div>
+        <details open>
+          <summary class="tt-summary">Show / Hide Table</summary>
+          <div style="font-family: var(--ui-font); font-size: 12px; color: var(--muted); margin-bottom: 12px;">Auto-generates based on current wiring. (Max 6 inputs)</div>
+          <div class="tt-table-wrap" id="truthTableContainer">
+            </div>
+        </details>
+      </div>
+
+      <div class="card">
+        <div class="cardTitle">Tools</div>
+        <button class="btn btnReset btnWide" id="btnClearBoard" type="button" style="margin-bottom:0;">Clear Board</button>
+      </div>
+
+    </aside>
+  </div>
+
+  <script src="../scripts/logicGates.js"></script>
+</BaseLayout>
