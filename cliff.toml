@@ -1,0 +1,35 @@
+[changelog]
+header = """
+# Changelog
+"""
+
+body = """
+{% for group, commits in commits | group_by(attribute="group") %}
+## {{ group }}
+{% for commit in commits %}
+- {{ commit.message | upper_first }}
+{% endfor %}
+{% endfor %}
+"""
+
+footer = ""
+
+[git]
+conventional_commits = false
+filter_unconventional = false
+split_commits = false
+topo_order = true
+
+# IMPORTANT: match your tag format
+tag_pattern = "^v[0-9]{2}\\.[0-9]{2}\\.[0-9]{2}[a-z]$"
+
+commit_parsers = [
+  { message = "^feat", group = "🚀 Features" },
+  { message = "^fix", group = "🐛 Fixes" },
+  { message = "^refactor", group = "♻️ Refactoring" },
+  { message = "^docs", group = "📚 Documentation" },
+  { message = "^chore", group = "💼 Other" },
+
+  # catch-all so NOTHING is dropped
+  { message = ".*", group = "💼 Other" },
+]
