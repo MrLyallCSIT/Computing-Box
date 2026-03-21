@@ -95,8 +95,10 @@ jobs:
           PREV_TAG="$(
             git tag --list 'v*' \
               | grep -E '^v[0-9]{2}\.[0-9]{2}\.[0-9]{2}[a-z]$' \
+              | grep -Fxv "$TAG" \
               | sort -V \
-              | tail -n 1
+              | tail -n 1 \
+              || true
           )"
 
           if [ -n "$PREV_TAG" ]; then
@@ -196,7 +198,7 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v6
         with:
-          node-version: 22.22.1
+          node-version: 25
           cache: npm
 
       - name: Check Node version
