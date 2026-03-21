@@ -1,5 +1,9 @@
 ---
 import "../styles/global.css";
+import versionInfo from "../generated/version.json";
+
+const version = versionInfo.version;
+const releaseUrl = versionInfo.url;
 const { title = "Computing:Box" } = Astro.props;
 ---
 
@@ -60,6 +64,12 @@ const { title = "Computing:Box" } = Astro.props;
               <a href="/legal-code" style="margin-left: 32px; color: var(--muted); text-decoration: underline;">Legal Code</a>
           </div>
         <div>Computer Science Concept Simulators</div>
+          <div>
+    Version:
+    <a href={releaseUrl} target="_blank" rel="noopener noreferrer">
+      {version}
+    </a>
+  </div>
         <div>© {new Date().getFullYear()} Computing:Box • Created with ♥ by Mr A Lyall</div>
       </div>
     </footer>
