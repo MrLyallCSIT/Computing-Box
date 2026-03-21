@@ -76,14 +76,11 @@ jobs:
         shell: bash
         run: |
           set -e
-          # Extract the first "## ..." section (newest section) from CHANGELOG.md
-          # Includes the "## ..." heading and everything until the next "## ..." heading.
           awk '
             /^## / { if (seen) exit; seen=1 }
             seen { print }
           ' CHANGELOG.md > RELEASE_NOTES.md
 
-          # Clean trailing whitespace/newlines a bit
           sed -i 's/[[:space:]]*$//' RELEASE_NOTES.md
 
           test -s RELEASE_NOTES.md
@@ -142,6 +139,23 @@ jobs:
           echo "Release name: $RELEASE_NAME"
           echo "Release URL: $RELEASE_URL"
 
+      - name: Derive semver package version from tag
+        shell: bash
+        run: |
+          set -e
+
+          # Convert:
+          # v25.03.21a -> 25.3.21-a
+          PACKAGE_VERSION="$(echo "$TAG" | sed -E 's/^v([0-9]{2})\.0?([0-9]{1,2})\.0?([0-9]{1,2})([a-z])$/\1.\2.\3-\4/')"
+
+          if [ -z "$PACKAGE_VERSION" ]; then
+            echo "❌ Failed to derive PACKAGE_VERSION from TAG=$TAG"
+            exit 1
+          fi
+
+          echo "PACKAGE_VERSION=$PACKAGE_VERSION" >> "$GITHUB_ENV"
+          echo "Using package version: $PACKAGE_VERSION"
+
       - name: Generate version file for Astro footer
         shell: bash
         run: |
@@ -160,7 +174,7 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 25
           cache: npm
 
       - name: Install dependencies
@@ -168,6 +182,18 @@ jobs:
         run: |
           set -e
           npm ci
+
+      - name: Update package.json and package-lock.json version
+        shell: bash
+        run: |
+          set -e
+          npm version "$PACKAGE_VERSION" --no-git-tag-version
+
+          echo "package.json version:"
+          node -p "require('./package.json').version"
+
+          echo "package-lock.json version:"
+          node -p "require('./package-lock.json').version"
 
       - name: Build Astro site
         shell: bash
@@ -280,4 +306,34 @@ jobs:
             -F "attachment=@${ZIP_PATH}" \
             >/dev/null
 
-          echo "✅ Release created: ${RELEASE_NAME} (tag: ${TAG}) with asset uploaded"
+          echo "✅ Release created: ${RELEASE_NAME} (tag: ${TAG}) with asset uploaded"  
+
+      - name: Commit and push version bump (CHANGELOG_PAT)
+        shell: bash
+        env:
+          CHANGELOG_PAT: ${{ secrets.CHANGELOG_PAT }}
+        run: |
+          set -e
+
+          if git diff --quiet -- package.json package-lock.json; then
+            echo "No version changes to commit."
+          else
+            git config user.name "release-bot"
+            git config user.email "release-bot@users.noreply.local"
+
+            git add package.json package-lock.json
+            git commit -m "chore(release): bump version to ${PACKAGE_VERSION} [skip ci]"
+
+            origin_url="$(git remote get-url origin)"
+
+            # Convert SSH → HTTPS if needed
+            if echo "$origin_url" | grep -q "^git@"; then
+              host="$(echo "$origin_url" | sed -E 's#git@([^:]+):.*#\1#')"
+              path="$(echo "$origin_url" | sed -E 's#git@[^:]+:(.*)#\1#')"
+              origin_url="https://$host/$path"
+            fi
+
+            authed_url="$(echo "$origin_url" | sed -E "s#^https://#https://oauth2:${CHANGELOG_PAT}@#")"
+
+            git push "$authed_url" HEAD:main
+          fi
