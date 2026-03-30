@@ -13,7 +13,80 @@
         var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
         g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
       })();
-    </script><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&display=swap" rel="stylesheet"><link rel="icon" type="image/x-icon" href="/images/favicon.ico"><link rel="stylesheet" href="/_astro/BaseLayout.DM-NXsTj.css"></head> <body> <header class="siteNav"> <div class="navInner"> <a class="brand" href="/"> <img class="brandLogo" src="/images/computing-box-logo.webp" alt="Computing:Box logo"> <span class="brandName">Computing:Box</span> </a> <nav class="navLinks" aria-label="Site navigation"> <a href="/about">About</a> <a href="/binary">Binary</a> <a href="/hexadecimal">Hexadecimal</a> <a href="/hex-colours">Hex Colours</a> <a href="/logic-gates">Logic Gates</a> <a href="/pc-builder">PC Components</a> </nav> </div> </header> <main class="pageWrap">  <div style="display: flex; align-items: center; justify-content: space-between; gap: 40px; min-height: 60vh; padding: 40px 0;"> <div style="flex: 1;"> <p style="color: var(--accent); font-weight: 800; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px;">Version 2.0 Now Live</p> <h1 class="brandName" style="font-size: 48px; line-height: 1.1; margin-bottom: 24px;">Understand Computing concepts better.</h1> <p style="font-size: 18px; color: var(--muted);">
+    </script><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&display=swap" rel="stylesheet"><link rel="icon" type="image/x-icon" href="/images/favicon.ico"><link rel="stylesheet" href="/_astro/BaseLayout.B8W3SO34.css"></head> <body> <header class="siteNav"> <div class="navInner"> <a class="brand" href="/"> <img class="brandLogo" src="/images/computing-box-logo-small.webp" alt="Computing:Box logo"> <span class="brandName">Computing:Box</span> </a> <nav class="navLinks" aria-label="Site navigation"> <a href="/">Home</a> <a href="/about">About</a> <a href="/binary">Binary</a> <a href="/hexadecimal">Hexadecimal</a> <a href="/hex-colours">Hex Colours</a> <a href="/logic-gates">Logic Gates</a> <a href="/pc-builder">PC Components</a> </nav> </div> </header> <main class="pageWrap">  <div style="display: flex; align-items: center; justify-content: space-between; gap: 40px; min-height: 60vh; padding: 40px 0;"> <div style="flex: 1;"> <p style="color: var(--accent); font-weight: 800; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px;">Version 2.0 Now Live</p> <h1 class="brandName" style="font-size: 48px; line-height: 1.1; margin-bottom: 24px;">Understand Computing concepts better.</h1> <p style="font-size: 18px; color: var(--muted);">
 Interactive simulators for Binary, Hexadecimal, Logic Gates, and Computer Components designed for the UK curriculum.
 </p> <div style="display: flex; gap: 16px; margin-top: 32px;"> <a href="/about" class="btn btnAccent" style="text-decoration: none; padding: 14px 28px;">Learn More</a> <a href="/binary" class="btn" style="text-decoration: none; padding: 14px 28px;">Get Started</a> </div> </div> <div style="flex: 1; text-align: right;"> <img src="/images/computing-box-logo.webp" alt="Computing Box Logo" style="width: 100%; max-width: 450px; filter: drop-shadow(0 0 50px rgba(40, 240, 122, 0.15));"> </div> </div>  </main> <footer class="siteFooter"> <div class="footerInner"> <div style="margin-top: 5px; display: flex; justify-content: center;"> <a href="/copyright" style="color: var(--muted); text-decoration: underline;">Copyright Notice</a> <a href="/legal-code" style="margin-left: 32px; color: var(--muted); text-decoration: underline;">Legal Code</a> </div> <div>Computer Science Concept Simulators</div> <div> Version:
-<a href="#" target="_blank" rel="noopener noreferrer">dev</a> • © 2026 Computing:Box • Created with ♥ by Mr A Lyall</div> </div> </footer> </body></html>
+<a href="#" target="_blank" rel="noopener noreferrer">dev</a> • © 2026 Computing:Box • Created with ♥ by Mr A Lyall</div> </div> </footer> <script>
+      function setupToolboxAccordions() {
+        // Look for cards inside ANY of the three toolboxes!
+        const cards = document.querySelectorAll('.panelCol .card, .pb-toolbox .card, .lg-toolbox .card');
+        if (!cards.length) return;
+
+        // Your primary cards for each page
+        const primaryCardNames = ['settings', 'info', 'components', 'system diagnostics'];
+
+        cards.forEach(card => {
+          const titleEl = card.querySelector('.cardTitle');
+          if (!titleEl) return;
+
+          const titleText = titleEl.textContent.trim().toLowerCase();
+          const isPrimary = primaryCardNames.includes(titleText);
+
+          // 1. DYNAMICALLY WRAP THE CONTENT
+          if (!card.querySelector('.cardBody')) {
+            const body = document.createElement('div');
+            body.className = 'cardBody';
+            const inner = document.createElement('div');
+            inner.className = 'cardBodyInner';
+            body.appendChild(inner);
+
+            Array.from(card.childNodes).forEach(node => {
+              if (node !== titleEl) {
+                inner.appendChild(node);
+              }
+            });
+            card.appendChild(body);
+          }
+
+          // 2. APPLY DEFAULT STATE
+          if (isPrimary) {
+            card.classList.remove('collapsed'); 
+          } else {
+            card.classList.add('collapsed');
+          }
+
+          // 3. CLICK LISTENERS
+          if (card.dataset.accordionInit) return;
+          card.dataset.accordionInit = "true";
+
+          titleEl.addEventListener('click', () => {
+            const isCollapsing = !card.classList.contains('collapsed');
+
+            if (isCollapsing) {
+              card.classList.add('collapsed');
+            } else {
+              if (isPrimary) {
+                cards.forEach(c => { 
+                  // Only close cards that share the same parent toolbox
+                  if (c !== card && c.closest(card.parentElement.tagName) === card.closest(card.parentElement.tagName)) {
+                    c.classList.add('collapsed'); 
+                  }
+                });
+              } else {
+                cards.forEach(c => {
+                  if (c.closest(card.parentElement.tagName) !== card.closest(card.parentElement.tagName)) return;
+                  const cTitle = c.querySelector('.cardTitle')?.textContent.trim().toLowerCase() || '';
+                  if (primaryCardNames.includes(cTitle)) {
+                    c.classList.add('collapsed');
+                  }
+                });
+              }
+              card.classList.remove('collapsed');
+            }
+          });
+        });
+      }
+
+      setupToolboxAccordions();
+      document.addEventListener('astro:page-load', setupToolboxAccordions);
+    </script> </body> </html>

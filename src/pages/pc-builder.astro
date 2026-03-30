@@ -32,19 +32,24 @@ import "../styles/pc-builder.css";
     
     <aside id="toolboxPanel" class="pb-toolbox" aria-label="Toolbox">
       <div class="card">
-        <div class="cardTitle">Inventory</div>
-        <div class="tb-icon-grid" id="toolboxGrid"></div>
-      </div>
-
-      <div class="card">
         <div class="cardTitle">System Diagnostics</div>
         <div style="font-family: var(--ui-font); font-size: 12px; color: var(--muted); margin-bottom: 12px;">Live pre-flight boot analysis.</div>
         <div class="specs-panel" id="buildSpecsContainer"></div>
       </div>
 
       <div class="card">
+        <div class="cardTitle">Inventory</div>
+        <div class="tb-icon-grid" id="toolboxGrid"></div>
+      </div>
+
+      <div class="card">
         <div class="cardTitle">Tools</div>
-        <button class="btn btnReset btnWide" id="btnClearBoard" type="button" style="margin-bottom:0;">Disassemble PC</button>
+        <div style="display:grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 12px;">
+          <button class="btn btnWide" id="btnAssembleHDD" type="button">Assemble (HDD Build)</button>
+          <button class="btn btnWide" id="btnAssembleSATA" type="button">Assemble (SSD Build)</button>
+          <button class="btn btnWide" id="btnAssembleM2" type="button">Assemble (NVMe Build)</button>
+        </div>
+        <button class="btn btnReset btnWide" id="btnClearBoard" type="button">Disassemble PC</button>
       </div>
     </aside>
 

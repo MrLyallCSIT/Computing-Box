@@ -39,11 +39,12 @@ const { title = "Computing:Box" } = Astro.props;
     <header class="siteNav">
       <div class="navInner">
         <a class="brand" href="/">
-          <img class="brandLogo" src="/images/computing-box-logo.webp" alt="Computing:Box logo" />
+          <img class="brandLogo" src="/images/computing-box-logo-small.webp" alt="Computing:Box logo" />
           <span class="brandName">Computing:Box</span>
         </a>
 
         <nav class="navLinks" aria-label="Site navigation">
+          <a href="/">Home</a>
           <a href="/about">About</a>
           <a href="/binary">Binary</a>
           <a href="/hexadecimal">Hexadecimal</a>
@@ -69,5 +70,81 @@ const { title = "Computing:Box" } = Astro.props;
     <a href={releaseUrl} target="_blank" rel="noopener noreferrer">{version}</a> • © {new Date().getFullYear()} Computing:Box • Created with ♥ by Mr A Lyall</div>
       </div>
     </footer>
+
+<script is:inline>
+      function setupToolboxAccordions() {
+        // Look for cards inside ANY of the three toolboxes!
+        const cards = document.querySelectorAll('.panelCol .card, .pb-toolbox .card, .lg-toolbox .card');
+        if (!cards.length) return;
+
+        // Your primary cards for each page
+        const primaryCardNames = ['settings', 'info', 'components', 'system diagnostics'];
+
+        cards.forEach(card => {
+          const titleEl = card.querySelector('.cardTitle');
+          if (!titleEl) return;
+
+          const titleText = titleEl.textContent.trim().toLowerCase();
+          const isPrimary = primaryCardNames.includes(titleText);
+
+          // 1. DYNAMICALLY WRAP THE CONTENT
+          if (!card.querySelector('.cardBody')) {
+            const body = document.createElement('div');
+            body.className = 'cardBody';
+            const inner = document.createElement('div');
+            inner.className = 'cardBodyInner';
+            body.appendChild(inner);
+
+            Array.from(card.childNodes).forEach(node => {
+              if (node !== titleEl) {
+                inner.appendChild(node);
+              }
+            });
+            card.appendChild(body);
+          }
+
+          // 2. APPLY DEFAULT STATE
+          if (isPrimary) {
+            card.classList.remove('collapsed'); 
+          } else {
+            card.classList.add('collapsed');
+          }
+
+          // 3. CLICK LISTENERS
+          if (card.dataset.accordionInit) return;
+          card.dataset.accordionInit = "true";
+
+          titleEl.addEventListener('click', () => {
+            const isCollapsing = !card.classList.contains('collapsed');
+
+            if (isCollapsing) {
+              card.classList.add('collapsed');
+            } else {
+              if (isPrimary) {
+                cards.forEach(c => { 
+                  // Only close cards that share the same parent toolbox
+                  if (c !== card && c.closest(card.parentElement.tagName) === card.closest(card.parentElement.tagName)) {
+                    c.classList.add('collapsed'); 
+                  }
+                });
+              } else {
+                cards.forEach(c => {
+                  if (c.closest(card.parentElement.tagName) !== card.closest(card.parentElement.tagName)) return;
+                  const cTitle = c.querySelector('.cardTitle')?.textContent.trim().toLowerCase() || '';
+                  if (primaryCardNames.includes(cTitle)) {
+                    c.classList.add('collapsed');
+                  }
+                });
+              }
+              card.classList.remove('collapsed');
+            }
+          });
+        });
+      }
+
+      setupToolboxAccordions();
+      document.addEventListener('astro:page-load', setupToolboxAccordions);
+    </script>
+
   </body>
 </html>

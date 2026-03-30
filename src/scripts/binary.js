@@ -375,7 +375,7 @@
 
     setRandomRunning(true);
     const start = Date.now();
-    const durationMs = 1125; 
+    const durationMs = 1500; 
     const tickMs = 80;
 
     randomTimer = setInterval(() => {

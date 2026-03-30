@@ -63,7 +63,38 @@
 .hexColWeight { font-family: var(--bit-font); font-size: 40px; color: rgba(232,232,238,.6); margin-top: 14px; }
 
 /* --- TOOLBOX COMPONENTS FOR NUMBERS --- */
-.panelCol { position: fixed; top: var(--toolbox-top); right: 22px; width: var(--toolbox-w); z-index: 80; display: flex; flex-direction: column; gap: 16px; transform: translateX(0); opacity: 1; transition: transform 420ms cubic-bezier(.2,.9,.2,1), opacity 220ms ease; }
+.panelCol {
+  /* Your original layout and animations */
+  position: fixed; 
+  top: var(--toolbox-top); 
+  right: 22px; 
+  width: var(--toolbox-w); 
+  z-index: 80; 
+  display: flex; 
+  flex-direction: column; 
+  gap: 16px; 
+  transform: translateX(0); 
+  opacity: 1; 
+  transition: transform 420ms cubic-bezier(.2,.9,.2,1), opacity 220ms ease; 
+
+  /* THE FIX: Push the bottom edge higher up the screen */
+  /* If your footer is ~140px tall, 170px gives you a perfect 30px safe gap */
+  bottom: 110px; 
+  
+  /* Let the inside scroll smoothly */
+  overflow-y: auto; 
+  scrollbar-width: none; 
+}
+
+/* Hide the scrollbar in Chrome/Safari */
+.panelCol::-webkit-scrollbar {
+  display: none;
+}
+
+.panelCol .card {
+  flex-shrink: 0;
+}
+
 .binaryPage.toolboxCollapsed .panelCol { transform: translateX(calc(var(--toolbox-w) + 32px)); opacity: 0; pointer-events: none; }
 
 .toggleRow { display: flex; align-items: center; justify-content: space-between; gap: 12px; }

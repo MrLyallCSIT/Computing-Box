@@ -68,32 +68,65 @@ body:has(#logicPage) .pageWrap {
 }
 .lg-zoom-btn:hover { background: rgba(255,255,255,0.1); border-color: #28f07a; color: #28f07a; }
 
+/* Update the SVG layer to sit ON TOP of nodes */
+/* Move the wire layer behind the nodes */
 .lg-svg-layer {
-  position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1; /* Lower than nodes */
+  pointer-events: none; 
 }
 
 /* Wires */
+/* Wires - allow them to be clickable even behind the 'hit area' of ports */
 .lg-wire {
-  stroke: rgba(255,255,255,0.25); stroke-width: 6; fill: none; stroke-linecap: round;
-  transition: stroke 0.1s ease, filter 0.1s ease, stroke-width 0.1s ease;
-  pointer-events: stroke; cursor: pointer;
+    stroke: #ffffff40;
+    stroke-width: 6;
+    fill: none;
+    stroke-linecap: round;
+    transition: stroke .1s ease,filter .1s ease,stroke-width .1s ease;
+    pointer-events: stroke;
+    cursor: pointer;
+    z-index: 1;
 }
-.lg-wire:hover { stroke: rgba(255,255,255,0.6); stroke-width: 10; }
-.lg-wire.active { stroke: #28f07a; filter: drop-shadow(0 0 6px rgba(40,240,122,0.6)); }
-.lg-wire.active:hover { stroke: #5dff9e; }
+.lg-wire:hover {
+    stroke: #fff9;
+    stroke-width: 10
+}
+.lg-wire.active {
+    stroke: #28f07a;
+    filter: drop-shadow(0 0 6px rgba(40,240,122,.6))
+}
+.lg-wire.active:hover {
+    stroke: #5dff9e
+}
 .lg-wire.selected {
-  stroke: #ff5555 !important; stroke-width: 8 !important; stroke-dasharray: 8 8;
-  filter: drop-shadow(0 0 8px rgba(255,85,85,0.8)) !important; animation: wireDash 1s linear infinite;
+    stroke: #f55!important;
+    stroke-width: 8!important;
+    stroke-dasharray: 8 8;
+    filter: drop-shadow(0 0 8px rgba(255,85,85,.8))!important;
+    animation: wireDash 1s linear infinite
 }
-@keyframes wireDash { to { stroke-dashoffset: -16; } }
-.lg-wire-temp { stroke: rgba(255,255,255,0.4); stroke-dasharray: 8 8; pointer-events: none; }
+@keyframes wireDash {
+    to {
+        stroke-dashoffset: -16
+    }
+}
+.lg-wire-temp {
+    stroke: #fff6;
+    stroke-dasharray: 8 8;
+    pointer-events: none
+}
 
 /* Nodes */
+/* Nodes - move them in front of wires */
 .lg-node {
-  position: absolute; background: transparent; border: none; border-radius: 0; padding: 4px;
-  display: flex; flex-direction: column; align-items: center; cursor: grab;
-  z-index: 10; user-select: none; transition: filter 0.2s;
-  pointer-events: auto; /* Re-enables interaction inside the viewport */
+  position: absolute;
+  z-index: 10; /* Higher than wires */
+  pointer-events: auto;
+  user-select: none;
 }
 .lg-node:active { cursor: grabbing; z-index: 20; }
 .lg-node.selected { filter: drop-shadow(0 0 10px rgba(255,85,85,0.8)); }
@@ -108,13 +141,24 @@ body:has(#logicPage) .pageWrap {
 .lg-line-svg { width: 30px; height: 50px; display: block; }
 
 /* Connection Ports */
+/* Update ports to sit even higher so they stay clickable */
+/* Ports - Ensure the dots are the top-most layer */
 .lg-port {
-  width: 16px; height: 16px; background: #a9acb8; border-radius: 50%; cursor: crosshair;
-  border: 3px solid var(--bg); box-shadow: 0 0 0 1px rgba(255,255,255,0.2); transition: all 0.2s;
-  position: absolute; z-index: 5; transform: translate(-50%, -50%); 
+  width: 12px; /* Balanced size */
+  height: 12px;
+  background: #a9acb8;
+  border: 2px solid #1f2027; /* Dark border helps it 'pop' over glowing wires */
+  border-radius: 50%;
+  position: absolute;
+  z-index: 100; /* Absolute top */
+  transform: translate(-50%, -50%);
+  cursor: crosshair;
 }
 .lg-port:hover { transform: translate(-50%, -50%) scale(1.3); background: #fff; }
-.lg-port.active { background: #28f07a; box-shadow: 0 0 12px rgba(40,240,122,0.8); border-color: #1f2027; }
+.lg-port.active {
+  background: #28f07a;
+  box-shadow: 0 0 8px rgba(40,240,122,.45);
+}
 
 /* === FLOATING TOOLBOX === */
 .toolboxToggle {
@@ -163,3 +207,14 @@ body:has(#logicPage) .pageWrap {
 .tt-table th { position: sticky; top: 0; background: rgba(31,32,39,0.95); padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.15); color: var(--muted); font-family: var(--bit-font); font-weight: normal; }
 .tt-table td { padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.05); }
 .tt-table .tt-on { color: #28f07a; text-shadow: 0 0 8px rgba(40,240,122,0.5); }
+
+
+/* Ensure the active-sim class actually changes the color */
+.active-sim .slider {
+  background-color: rgba(40,240,122,.25) !important; /* Bright Green */
+  box-shadow: 0 0 15px rgba(40, 240, 122, 0.5);
+}
+
+.active-sim .slider::before {
+  transform: translateX(28px) !important;
+}

@@ -37,7 +37,7 @@ body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--
 .siteNav { position: sticky; top: 0; z-index: 50; height: var(--nav-h); background: rgba(0,0,0,.10); border-bottom: 1px solid var(--line); backdrop-filter: blur(8px); margin-bottom: 25px; }
 .navInner { height: 90px; max-width: 1400px; margin: 0 auto; padding: 0 20px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
 .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text); }
-.brandLogo { width: 2.5em; height: 2.5em; image-rendering: pixelated; }
+.brandLogo { width: 75px; height: 75px; image-rendering: pixelated; }
 .brandName { letter-spacing: .12em; font-weight: 900; font-size: 18px; }
 .navLinks { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
 .navLinks a { color: var(--muted); text-decoration: none; font-weight: 800; letter-spacing: .12em; font-size: 16px; }
@@ -89,7 +89,7 @@ body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--
 .switch input { display: none; }
 .slider { position: absolute; inset: 0; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.14); border-radius: 999px; transition: .2s ease; }
 .slider::before { content: ""; position: absolute; width: 22px; height: 22px; left: 3px; top: 2px; background: rgba(255,255,255,.92); border-radius: 999px; transition: .2s ease; pointer-events: none; }
-.switch input:checked + .slider { background: rgba(40,240,122,.25); border-color: rgba(40,240,122,.30); }
+.switch input:checked + .slider { background: rgba(40,240,122,.30); border-color: rgba(40,240,122,.30); }
 .switch input:checked + .slider::before { transform: translateX(28px); }
 
 /* --- HEXADECIMAL --- */
@@ -225,4 +225,148 @@ body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--
   font-weight: 400;
   line-height: 150%;
   margin: 0 0 2em 2em;
+}
+
+.btnRandomRunning {
+  background: rgba(40,240,122,.18) !important;
+  border-color: rgba(40,240,122,.35) !important;
+  color: rgba(232,232,238,.95) !important; /* Added this so the text pops like the reset button */
+  animation: randomPulse 750ms ease-in-out infinite;
+}
+
+@keyframes randomPulse {
+  0% { box-shadow: 0 0 0 rgba(40,240,122,0); }
+  50% { box-shadow: 0 0 22px rgba(40,240,122,.38); } /* Matched the .38 opacity peak */
+  100% { box-shadow: 0 0 0 rgba(40,240,122,0); }
+}
+
+.btnReset { color: rgba(232,232,238,.95); }
+.btnReset:hover {
+  background: rgba(255,80,80,.18);
+  border-color: rgba(255,80,80,.35);
+  animation: resetPulse 750ms ease-in-out infinite;
+}
+
+@keyframes resetPulse {
+  0% { box-shadow: 0 0 0 rgba(255,80,80,0); }
+  50% { box-shadow: 0 0 22px rgba(255,80,80,.38); }
+  100% { box-shadow: 0 0 0 rgba(255,80,80,0); }
+}
+
+/* --- ACCORDION ANIMATIONS FOR ALL TOOLBOXES --- */
+.panelCol .cardTitle,
+.pb-toolbox .cardTitle,
+.lg-toolbox .cardTitle {
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  user-select: none;
+}
+
+.panelCol .cardTitle::after,
+.pb-toolbox .cardTitle::after,
+.lg-toolbox .cardTitle::after {
+  content: '▼';
+  font-size: 0.7em;
+  opacity: 0.6;
+  transition: transform 0.25s ease;
+}
+
+.panelCol .card.collapsed .cardTitle::after,
+.pb-toolbox .card.collapsed .cardTitle::after,
+.lg-toolbox .card.collapsed .cardTitle::after {
+  transform: rotate(90deg);
+}
+
+.panelCol .cardBody,
+.pb-toolbox .cardBody,
+.lg-toolbox .cardBody {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 350ms cubic-bezier(0.2, 0.9, 0.2, 1);
+  margin-top: 12px;
+}
+
+.panelCol .card.collapsed .cardBody,
+.pb-toolbox .card.collapsed .cardBody,
+.lg-toolbox .card.collapsed .cardBody {
+  grid-template-rows: 0fr;
+  margin-top: 0;
+}
+
+.panelCol .cardBodyInner,
+.pb-toolbox .cardBodyInner,
+.lg-toolbox .cardBodyInner {
+  overflow: hidden;
+  opacity: 1;
+  transition: opacity 250ms ease 100ms, visibility 0s 0s; 
+}
+
+.panelCol .card.collapsed .cardBodyInner,
+.pb-toolbox .card.collapsed .cardBodyInner,
+.lg-toolbox .card.collapsed .cardBodyInner {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 200ms ease 0s, visibility 0s 200ms;
+}
+
+/* --- BASE STATE: Lock the scale so it never stretches --- */
+.btnRandom, #btnRandom, 
+.btnReset, #btnReset {
+    transform: scale(1) !important;
+    transition: transform 0.1s ease-out, border-color 0.2s ease-out, color 0.2s ease-out !important;
+}
+
+/* --- THE PULSE ANIMATIONS --- */
+@keyframes neonPulseGreen {
+    0%, 100% {
+        background-color: rgba(40, 240, 122, 0.05);
+        box-shadow: inset 0 0 10px rgba(40, 240, 122, 0.4), 
+                    0 0 5px rgba(40, 240, 122, 0.2);
+    }
+    50% {
+        background-color: rgba(40, 240, 122, 0.15);
+        box-shadow: inset 0 0 22px rgba(40, 240, 122, 0.8), 
+                    0 0 12px rgba(40, 240, 122, 0.5);
+    }
+}
+
+@keyframes neonPulseRed {
+    0%, 100% {
+        background-color: rgba(255, 85, 85, 0.05);
+        box-shadow: inset 0 0 10px rgba(255, 85, 85, 0.4), 
+                    0 0 5px rgba(255, 85, 85, 0.2);
+    }
+    50% {
+        background-color: rgba(255, 85, 85, 0.15);
+        box-shadow: inset 0 0 22px rgba(255, 85, 85, 0.8), 
+                    0 0 12px rgba(255, 85, 85, 0.5);
+    }
+}
+
+/* --- HOVER STATES: Trigger the infinite pulse --- */
+.btnRandom:hover, .btnRandom:focus, .btnRandom.active,
+#btnRandom:hover, #btnRandom:focus, #btnRandom.active {
+    border-color: #28f07a !important;
+    color: #28f07a !important;
+    /* 1.5s cycle, infinite loop, smooth easing */
+    animation: neonPulseGreen 1.5s infinite ease-in-out !important;
+}
+
+.btnReset:hover, .btnReset:focus, .btnReset.active,
+#btnReset:hover, #btnReset:focus, #btnReset.active {
+    border-color: #ff5555 !important;
+    color: #ff5555 !important;
+    /* 1.5s cycle, infinite loop, smooth easing */
+    animation: neonPulseRed 1.5s infinite ease-in-out !important;
+}
+
+/* --- CLICK STATE: Interrupt the pulse and shrink --- */
+.btnRandom:active, #btnRandom:active,
+.btnReset:active, #btnReset:active {
+    transform: scale(0.96) !important; 
+    animation: none !important; /* Immediately kill the pulse while clicked */
+    background-color: transparent !important;
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.8) !important; 
 }

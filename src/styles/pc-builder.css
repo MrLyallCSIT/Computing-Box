@@ -39,13 +39,15 @@ body:has(#pcPage) .pageWrap {
 .pb-zoom-btn:hover { background: rgba(255,255,255,0.1); border-color: #55aaff; color: #55aaff; }
 
 /* Wires sit at the VERY FRONT so they are never hidden in the case */
-.pb-svg-layer { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 100; pointer-events: none; }
+/* Wire layer - sits above case but below ports */
+/* Wire layer - Physically on TOP of components */
+.pb-svg-layer { z-index: 100 !important; pointer-events: none; position: absolute; inset: 0; width: 100%; height: 100%; }
 
 /* Cables */
-.pb-wire {
-  stroke: rgba(255,255,255,0.25); stroke-width: 6; fill: none; stroke-linecap: round;
-  transition: stroke 0.1s ease, filter 0.1s ease, stroke-width 0.1s ease; pointer-events: stroke; cursor: pointer;
-}
+/* Cables - make sure they have a width and color */
+/* Cables - Styled for visibility */
+.pb-wire { stroke: #55aaff; stroke-width: 6; fill: none; pointer-events: stroke; }
+
 .pb-wire:hover { stroke: rgba(255,255,255,0.6); stroke-width: 10; }
 .pb-wire.active { stroke: #55aaff; filter: drop-shadow(0 0 6px rgba(85,170,255,0.6)); }
 .pb-wire.active:hover { stroke: #88ccff; }
@@ -58,6 +60,7 @@ body:has(#pcPage) .pageWrap {
   position: absolute; background: transparent; border: none; border-radius: 0; padding: 0;
   display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: grab;
   user-select: none; transition: filter 0.2s; pointer-events: auto;
+  z-index: 10;
 }
 .pb-node:active { cursor: grabbing; }
 .pb-node.selected { filter: drop-shadow(0 0 10px rgba(255,85,85,0.8)); }
@@ -67,7 +70,7 @@ body:has(#pcPage) .pageWrap {
 .pb-port {
   width: 14px; height: 14px; background: #222; border-radius: 50%; cursor: crosshair;
   border: 2px solid #55aaff; box-shadow: 0 0 0 1px rgba(255,255,255,0.2); transition: all 0.2s;
-  position: absolute; z-index: 200; transform: translate(-50%, -50%); pointer-events: auto;
+  position: absolute; z-index: 200 !important; transform: translate(-50%, -50%); pointer-events: auto;
 }
 .pb-port:hover { transform: translate(-50%, -50%) scale(1.4); background: #fff; }
 .pb-port.active { background: #55aaff; box-shadow: 0 0 12px rgba(85,170,255,0.8); }

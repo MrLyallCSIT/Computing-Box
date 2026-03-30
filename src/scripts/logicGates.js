@@ -33,6 +33,7 @@
   
   let nextNodeId = 1;
   let nextWireId = 1;
+  let discoveredStates = new Set();
 
   // Interaction State
   let isDraggingNode = null;
@@ -199,41 +200,97 @@
   }
 
   /* --- Truth Table Generation --- */
-  function generateTruthTable() {
-    if (!ttContainer) return;
+function generateTruthTable() {
+    // 1. Find the target container
+    let container = document.getElementById("truthTableContainer");
+    
+    // Fail-safe: Find the card if the specific ID is missing
+    if (!container) {
+      const cards = document.querySelectorAll('.card');
+      const ttCard = Array.from(cards).find(c => c.innerText.includes('LIVE TRUTH TABLE'));
+      if (ttCard) {
+        container = ttCard.querySelector('.cardBodyInner') || ttCard;
+      }
+    }
 
-    const inNodes = Object.values(nodes).filter(n => n.type === 'INPUT').sort((a,b) => a.label.localeCompare(b.label));
-    const outNodes = Object.values(nodes).filter(n => n.type === 'OUTPUT').sort((a,b) => a.label.localeCompare(b.label));
+    if (!container) return;
 
+    // 2. Identify and sort Inputs and Outputs
+    const inNodes = Object.values(nodes)
+      .filter(n => n.type === 'INPUT')
+      .sort((a,b) => a.label.localeCompare(b.label));
+    const outNodes = Object.values(nodes)
+      .filter(n => n.type === 'OUTPUT')
+      .sort((a,b) => a.label.localeCompare(b.label));
+
+    // 3. Handle Empty State
     if (inNodes.length === 0 || outNodes.length === 0) {
-      ttContainer.innerHTML = '<div style="padding: 16px; color: var(--muted); text-align:center;">Add inputs and outputs to generate table.</div>'; return;
-    }
-    if (inNodes.length > 6) {
-      ttContainer.innerHTML = '<div style="padding: 16px; color: var(--muted); text-align:center;">Maximum 6 inputs supported.</div>'; return;
+      container.innerHTML = '<div style="padding: 20px; color: var(--muted); text-align:center; font-family: var(--bit-font); font-size: 12px; letter-spacing: 1px;">CONNECT INPUTS & OUTPUTS</div>'; 
+      return;
     }
 
-    let html = '<table class="tt-table"><thead><tr>';
+    // 4. Build Table within the styled wrapper
+    let html = '<div class="tt-table-wrap"><table class="tt-table"><thead><tr>';
+    
+    // Headers
     inNodes.forEach(n => html += `<th>${n.label}</th>`);
-    outNodes.forEach(n => html += `<th style="color:var(--text);">${n.label}</th>`);
+    outNodes.forEach(n => html += `<th style="color:var(--text); border-left: 1px solid rgba(255,255,255,0.1);">${n.label}</th>`);
     html += '</tr></thead><tbody>';
 
+    // 5. Generate Rows
     const numRows = Math.pow(2, inNodes.length);
     for (let i = 0; i < numRows; i++) {
       let override = {};
-      inNodes.forEach((n, idx) => { override[n.id] = ((i >> (inNodes.length - 1 - idx)) & 1) === 1; });
-      let outStates = evaluateGraph(override);
+      let stateArr = [];
+      
+      // Calculate binary state for this row
+      inNodes.forEach((n, idx) => { 
+        let val = ((i >> (inNodes.length - 1 - idx)) & 1) === 1;
+        override[n.id] = val; 
+        stateArr.push(val ? '1' : '0');
+      });
+      
+      let stateStr = stateArr.join('');
+      let isFound = discoveredStates.has(stateStr);
+      let outResults = evaluateGraph(override); // Simulate the board logic for this state
 
       html += '<tr>';
-      inNodes.forEach(n => { let val = override[n.id]; html += `<td class="${val ? 'tt-on' : ''}">${val ? 1 : 0}</td>`; });
-      outNodes.forEach(n => { let val = outStates[n.id]; html += `<td class="${val ? 'tt-on' : ''}" style="font-weight:bold;">${val ? 1 : 0}</td>`; });
+      
+      // Input Cells
+      inNodes.forEach(n => { 
+        let v = override[n.id]; 
+        html += `<td class="${v ? 'tt-on' : ''}">${v ? 1 : 0}</td>`; 
+      });
+      
+      // Output Cells (Discovery Logic)
+      outNodes.forEach(n => { 
+        if (isFound) {
+          let v = outResults[n.id]; 
+          html += `<td class="${v ? 'tt-on' : ''}" style="font-weight:bold; border-left: 1px solid rgba(255,255,255,0.05);">${v ? 1 : 0}</td>`; 
+        } else {
+          html += `<td style="color: #444; border-left: 1px solid rgba(255,255,255,0.05); opacity: 0.6;">?</td>`; 
+        }
+      });
       html += '</tr>';
     }
-    html += '</tbody></table>';
-    ttContainer.innerHTML = html;
+    
+    html += '</tbody></table></div>';
+    container.innerHTML = html;
   }
 
-  function runSimulation() {
+  function runSimulation(topologyChanged = false) {
+    // If you add/remove wires, reset the table memory because the logic changed
+    if (topologyChanged) discoveredStates.clear();
+
     evaluateGraph();
+    
+    // Check the current board state (e.g., "10") and save it to memory
+    const inNodes = Object.values(nodes).filter(n => n.type === 'INPUT').sort((a,b) => a.label.localeCompare(b.label));
+    if (inNodes.length > 0) {
+      let currentStateStr = inNodes.map(n => n.value ? '1' : '0').join('');
+      discoveredStates.add(currentStateStr);
+    }
+
     renderWires();
     generateTruthTable();
   }
@@ -288,19 +345,18 @@
     viewport.appendChild(el);
     node.el = el;
 
-    if (node.type === 'INPUT') {
-      el.querySelector('.switch').addEventListener('click', (e) => {
-        const dist = Math.hypot(e.clientX - clickStartX, e.clientY - clickStartY);
-        if (dist > 3) {
-          e.preventDefault(); // Prevents toggle if it was a drag motion
-        } else {
-          node.value = !node.value;
-          el.querySelector('.switch').classList.toggle('active-sim', node.value);
-          el.querySelector('.slider').style.background = node.value ? 'rgba(40,240,122,.25)' : '';
-          el.querySelector('.slider').style.borderColor = node.value ? 'rgba(40,240,122,.30)' : '';
-          el.querySelector('.slider').innerHTML = node.value ? `<style>#logicPage [data-id="${node.id}"] .slider::before { transform: translateX(28px); }</style>` : '';
-          runSimulation();
-        }
+if (node.type === 'INPUT') {
+      const sw = el.querySelector('.switch');
+      sw.addEventListener('click', (e) => {
+        // ... (keep your clickStartX/Y drag check) ...
+
+        node.value = !node.value;
+        
+        // This targets the exact class your CSS needs for the glow and move
+        sw.classList.toggle('active-sim', node.value);
+        
+        // This ensures the table and logic update
+        runSimulation(); 
       });
     }
     return el;
@@ -312,7 +368,8 @@
     if (type === 'OUTPUT') label = getNextOutputLabel();
     if (type === 'GATE') label = gateType;
 
-    const id = `node_${nextNodeId++}`;
+    // Double check this line in logicGates.js
+    const id = `node_${Date.now()}_${nextNodeId++}`;
     const offset = Math.floor(Math.random() * 40);
     const x = dropX !== null ? dropX : (type === 'INPUT' ? 50 : (type === 'OUTPUT' ? 600 : 300) + offset);
     const y = dropY !== null ? dropY : 150 + offset;
@@ -320,7 +377,8 @@
     const node = { id, type, gateType, label, x, y, value: false, el: null };
     nodes[id] = node;
     createNodeElement(node);
-    runSimulation();
+// Change the very last line to:
+    runSimulation(true);
   }
 
   /* --- Global Interaction Handlers --- */
@@ -433,8 +491,9 @@
           connections.push({ id: `conn_${nextWireId++}`, fromNode: wiringStart.node, fromPort: 'out', toNode: targetNodeId, toPort: targetPortId });
         }
       }
+      // Change the very last line of the if(wiringStart) block to:
       wiringStart = null; tempWirePath = null;
-      runSimulation();
+      runSimulation(true);
     }
   });
 
@@ -451,7 +510,8 @@
           viewport.removeChild(nodes[selectedNodeId].el);
         }
         delete nodes[selectedNodeId];
-        clearSelection(); runSimulation();
+        // Change the two deletion triggers to:
+        clearSelection(); runSimulation(true);
       }
     }
   });
@@ -471,10 +531,17 @@
   });
 
   /* --- Init --- */
-  btnClearBoard?.addEventListener('click', () => {
+btnClearBoard?.addEventListener('click', () => {
     viewport.querySelectorAll('.lg-node').forEach(el => el.remove());
-    nodes = {}; connections = [];
-    runSimulation();
+    
+    // Target your specific SVG layer class
+    const svgLayer = document.querySelector('.lg-svg-layer');
+    if (svgLayer) svgLayer.innerHTML = ''; 
+
+    nodes = {}; 
+    connections = []; 
+    discoveredStates.clear();
+    runSimulation(true); 
   });
 
   toolboxToggle?.addEventListener("click", () => {

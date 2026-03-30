@@ -13,8 +13,81 @@
         var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
         g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
       })();
-    </script><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&display=swap" rel="stylesheet"><link rel="icon" type="image/x-icon" href="/images/favicon.ico"><link rel="stylesheet" href="/_astro/BaseLayout.DM-NXsTj.css">
-<link rel="stylesheet" href="/_astro/number-simulators.9peKc0z2.css"></head> <body> <header class="siteNav"> <div class="navInner"> <a class="brand" href="/"> <img class="brandLogo" src="/images/computing-box-logo.webp" alt="Computing:Box logo"> <span class="brandName">Computing:Box</span> </a> <nav class="navLinks" aria-label="Site navigation"> <a href="/about">About</a> <a href="/binary">Binary</a> <a href="/hexadecimal">Hexadecimal</a> <a href="/hex-colours">Hex Colours</a> <a href="/logic-gates">Logic Gates</a> <a href="/pc-builder">PC Components</a> </nav> </div> </header> <main class="pageWrap">  <div class="binaryPage" id="hexPage"> <button id="toolboxToggle" class="toolboxToggle" type="button" aria-expanded="true"> <span class="toolboxIcon" aria-hidden="true">🧰</span> <span class="toolboxText">TOOLBOX</span> </button> <section class="topGrid"> <div class="leftCol"> <div class="readout"> <div class="label">Denary</div> <div id="denaryNumber" class="num denaryValue">0</div> <div class="label">Hexadecimal</div> <div id="hexNumber" class="num hexValue">00</div> <div class="label">Binary</div> <div id="binaryNumber" class="num binaryValue">00000000</div> </div> <div class="divider"></div> <section class="bitsWrap" aria-label="Hexadecimal sliders"> <div class="hexGrid" id="hexGrid"></div> </section> </div> <aside id="toolboxPanel" class="panelCol" aria-label="Toolbox"> <div class="card"> <div class="cardTitle">Settings</div> <div class="hint" style="margin-top: 0; margin-bottom: 14px;">
+    </script><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&display=swap" rel="stylesheet"><link rel="icon" type="image/x-icon" href="/images/favicon.ico"><link rel="stylesheet" href="/_astro/BaseLayout.B8W3SO34.css">
+<link rel="stylesheet" href="/_astro/number-simulators.6IzVRJBu.css"></head> <body> <header class="siteNav"> <div class="navInner"> <a class="brand" href="/"> <img class="brandLogo" src="/images/computing-box-logo-small.webp" alt="Computing:Box logo"> <span class="brandName">Computing:Box</span> </a> <nav class="navLinks" aria-label="Site navigation"> <a href="/">Home</a> <a href="/about">About</a> <a href="/binary">Binary</a> <a href="/hexadecimal">Hexadecimal</a> <a href="/hex-colours">Hex Colours</a> <a href="/logic-gates">Logic Gates</a> <a href="/pc-builder">PC Components</a> </nav> </div> </header> <main class="pageWrap">  <div class="binaryPage" id="hexPage"> <button id="toolboxToggle" class="toolboxToggle" type="button" aria-expanded="true"> <span class="toolboxIcon" aria-hidden="true">🧰</span> <span class="toolboxText">TOOLBOX</span> </button> <section class="topGrid"> <div class="leftCol"> <div class="readout"> <div class="label">Denary</div> <div id="denaryNumber" class="num denaryValue">0</div> <div class="label">Hexadecimal</div> <div id="hexNumber" class="num hexValue">00</div> <div class="label">Binary</div> <div id="binaryNumber" class="num binaryValue">00000000</div> </div> <div class="divider"></div> <section class="bitsWrap" aria-label="Hexadecimal sliders"> <div class="hexGrid" id="hexGrid"></div> </section> </div> <aside id="toolboxPanel" class="panelCol" aria-label="Toolbox"> <div class="card"> <div class="cardTitle">Settings</div> <div class="hint" style="margin-top: 0; margin-bottom: 14px;">
 Hexadecimal represents numbers using base 16 (0-9, A-F).
 </div> <div class="subCard"> <div class="subTitle">Digit width</div> <div class="bitWidthRow"> <button class="miniBtn" id="btnDigitsDown" type="button" aria-label="Decrease digits">−</button> <div class="bitInputWrap"> <div class="bitInputLabel">Digits</div> <input id="digitsInput" class="bitInput" type="number" inputmode="numeric" min="1" max="16" step="1" value="2" aria-label="Number of hex digits"> </div> <button class="miniBtn" id="btnDigitsUp" type="button" aria-label="Increase digits">+</button> </div> </div> </div> <div class="card"> <div class="cardTitle">Custom Number</div> <div class="controlsRow"> <button class="btn btnAccent btnHalf" id="btnCustomHex" type="button">Custom Hex</button> <button class="btn btnAccent btnHalf" id="btnCustomDenary" type="button">Custom Denary</button> </div> <div class="controlsRow"> <button class="btn btnAccent btnWide" id="btnCustomBinary" type="button">Custom Binary</button> </div> <button class="btn btnWide" id="btnRandom" type="button">Random</button> <div class="hint">Random runs briefly then stops automatically.</div> </div> <div class="card"> <div class="cardTitle">Tools</div> <div class="toolRowCentered"> <button class="toolBtn toolSpin toolDec" id="btnDec" type="button" aria-label="Decrement">▼</button> <button class="toolBtn toolSpin toolInc" id="btnInc" type="button" aria-label="Increment">▲</button> </div> <button class="btn btnReset btnWide" id="btnClear" type="button">Reset</button> </div> </aside> </section> </div> <script type="module" src="/_astro/hexadecimal.astro_astro_type_script_index_0_lang.C4Wx7oaX.js"></script>  </main> <footer class="siteFooter"> <div class="footerInner"> <div style="margin-top: 5px; display: flex; justify-content: center;"> <a href="/copyright" style="color: var(--muted); text-decoration: underline;">Copyright Notice</a> <a href="/legal-code" style="margin-left: 32px; color: var(--muted); text-decoration: underline;">Legal Code</a> </div> <div>Computer Science Concept Simulators</div> <div> Version:
-<a href="#" target="_blank" rel="noopener noreferrer">dev</a> • © 2026 Computing:Box • Created with ♥ by Mr A Lyall</div> </div> </footer> </body></html>
+<a href="#" target="_blank" rel="noopener noreferrer">dev</a> • © 2026 Computing:Box • Created with ♥ by Mr A Lyall</div> </div> </footer> <script>
+      function setupToolboxAccordions() {
+        // Look for cards inside ANY of the three toolboxes!
+        const cards = document.querySelectorAll('.panelCol .card, .pb-toolbox .card, .lg-toolbox .card');
+        if (!cards.length) return;
+
+        // Your primary cards for each page
+        const primaryCardNames = ['settings', 'info', 'components', 'system diagnostics'];
+
+        cards.forEach(card => {
+          const titleEl = card.querySelector('.cardTitle');
+          if (!titleEl) return;
+
+          const titleText = titleEl.textContent.trim().toLowerCase();
+          const isPrimary = primaryCardNames.includes(titleText);
+
+          // 1. DYNAMICALLY WRAP THE CONTENT
+          if (!card.querySelector('.cardBody')) {
+            const body = document.createElement('div');
+            body.className = 'cardBody';
+            const inner = document.createElement('div');
+            inner.className = 'cardBodyInner';
+            body.appendChild(inner);
+
+            Array.from(card.childNodes).forEach(node => {
+              if (node !== titleEl) {
+                inner.appendChild(node);
+              }
+            });
+            card.appendChild(body);
+          }
+
+          // 2. APPLY DEFAULT STATE
+          if (isPrimary) {
+            card.classList.remove('collapsed'); 
+          } else {
+            card.classList.add('collapsed');
+          }
+
+          // 3. CLICK LISTENERS
+          if (card.dataset.accordionInit) return;
+          card.dataset.accordionInit = "true";
+
+          titleEl.addEventListener('click', () => {
+            const isCollapsing = !card.classList.contains('collapsed');
+
+            if (isCollapsing) {
+              card.classList.add('collapsed');
+            } else {
+              if (isPrimary) {
+                cards.forEach(c => { 
+                  // Only close cards that share the same parent toolbox
+                  if (c !== card && c.closest(card.parentElement.tagName) === card.closest(card.parentElement.tagName)) {
+                    c.classList.add('collapsed'); 
+                  }
+                });
+              } else {
+                cards.forEach(c => {
+                  if (c.closest(card.parentElement.tagName) !== card.closest(card.parentElement.tagName)) return;
+                  const cTitle = c.querySelector('.cardTitle')?.textContent.trim().toLowerCase() || '';
+                  if (primaryCardNames.includes(cTitle)) {
+                    c.classList.add('collapsed');
+                  }
+                });
+              }
+              card.classList.remove('collapsed');
+            }
+          });
+        });
+      }
+
+      setupToolboxAccordions();
+      document.addEventListener('astro:page-load', setupToolboxAccordions);
+    </script> </body> </html>
