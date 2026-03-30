@@ -7,7 +7,7 @@ An evolution of Bit:Box & CS:Box to incorporate different elements of the UK Com
 - [The Official Computing:Box Website](https://www.computingbox.co.uk)
 
 
-<img src="/public/images/ComputingBox-Logo.webp" alt="Computing:Box Logo" width="250px" height="250px"/>
+<img src="/public/images/computingbox-logo.webp" alt="Computing:Box Logo" width="250px" height="250px"/>
 
 ## Upcoming Features
 ### Original Bit:Box Features (October 2024)
