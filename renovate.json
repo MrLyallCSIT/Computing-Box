@@ -1,3 +1,30 @@
 {
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json"
+  "assignAutomerge": true,
+  "assigneesFromCodeOwners": true,
+  "dependencyDashboardAutoclose": true,
+  "extends": ["config:recommended"],
+  "ignorePaths": ["**/.archive/**"],
+  "labels": ["type/dependencies"],
+  "platformCommit": "enabled",
+  "rebaseWhen": "behind-base-branch",
+  "rollbackPrs": true,
+  "vulnerabilityAlerts": {
+    "commitMessagePrefix": "[SECURITY] ",
+    "enabled": true,
+    "labels": ["security"],
+    "prCreation": "immediate"
+  },
+  "lockFileMaintenance": {
+    "enabled": false
+  },
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {  
+      "matchUpdateTypes": ["major"],
+      "automerge": false
+    }
+  ]
 }
