@@ -2,6 +2,16 @@
 // Computing:Box — Drag & Drop Logic Builder
 
 (() => {
+  const ALLOWED_GATE_TYPES = new Set(['AND', 'OR', 'NOT', 'NAND', 'NOR', 'XOR', 'XNOR']);
+  function escapeHtml(value) {
+    return String(value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   /* --- DOM Elements --- */
   const workspace = document.getElementById("workspace");
   const viewport = document.getElementById("viewport");
@@ -314,7 +324,7 @@ function generateTruthTable() {
     el.className = `lg-node`; el.dataset.id = node.id;
     el.style.left = `${node.x}px`; el.style.top = `${node.y}px`;
 
-    let innerHTML = `<div class="lg-header">${node.label}</div><div class="lg-gate-container">`;
+    let innerHTML = `<div class="lg-header">${escapeHtml(node.label)}</div><div class="lg-gate-container">`;
 
     if (node.type === 'INPUT') {
       innerHTML += `
@@ -366,7 +376,10 @@ if (node.type === 'INPUT') {
     let label = '';
     if (type === 'INPUT') label = getNextInputLabel();
     if (type === 'OUTPUT') label = getNextOutputLabel();
-    if (type === 'GATE') label = gateType;
+    if (type === 'GATE') {
+      gateType = ALLOWED_GATE_TYPES.has(gateType) ? gateType : 'AND';
+      label = gateType;
+    }
 
     // Double check this line in logicGates.js
     const id = `node_${Date.now()}_${nextNodeId++}`;
@@ -522,11 +535,12 @@ if (node.type === 'INPUT') {
     e.preventDefault();
     const spawnType = e.dataTransfer.getData('spawnType');
     if (spawnType) {
-      const gateType = e.dataTransfer.getData('gateType');
+      const droppedGateType = e.dataTransfer.getData('gateType');
+      const gateType = ALLOWED_GATE_TYPES.has(droppedGateType) ? droppedGateType : null;
       const wsRect = workspace.getBoundingClientRect();
       const x = (e.clientX - wsRect.left - panX) / zoom - 40; 
       const y = (e.clientY - wsRect.top - panY) / zoom - 30;
-      spawnNode(spawnType, gateType || null, x, y);
+      spawnNode(spawnType, gateType, x, y);
     }
   });
 
