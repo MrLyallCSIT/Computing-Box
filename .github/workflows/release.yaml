@@ -242,12 +242,31 @@ jobs:
           test -s "Computing:Box Website.zip"
           ls -lh "Computing:Box Website.zip"
 
-      - name: Create and push tag
+      - name: Create and push tag to GitHub
         shell: bash
         run: |
           set -e
           git tag -f "$TAG"
           git push origin "refs/tags/$TAG" --force
+
+      - name: Push tag to Forgejo
+        shell: bash
+        env:
+          FORGEJO_URL: ${{ secrets.FORGEJO_URL }}
+          FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
+        run: |
+          set -e
+          if [ -z "$FORGEJO_URL" ] || [ -z "$FORGEJO_TOKEN" ]; then
+            echo "⚠️ Forgejo secrets not configured. Skipping Forgejo tag push."
+            exit 0
+          }
+
+          forgejo_host="${FORGEJO_URL#*://}"
+          repo_slug="alexander.lyall/Computing-Box"
+          
+          echo "Pushing tag $TAG to Forgejo..."
+          git remote add forgejo "https://oauth2:${FORGEJO_TOKEN}@${forgejo_host}/${repo_slug}.git"
+          git push forgejo "refs/tags/$TAG" --force
 
       - name: Create GitHub release + upload asset
         shell: bash
@@ -260,9 +279,9 @@ jobs:
             --notes-file RELEASE_NOTES.md \
             --target main
 
-          echo "✅ Release created: ${RELEASE_NAME} (tag: ${TAG}) with asset uploaded"
+          echo "✅ GitHub Release created: ${RELEASE_NAME}"
 
-      - name: Mirror release to Forgejo
+      - name: Create Forgejo release + upload asset
         shell: bash
         env:
           FORGEJO_URL: ${{ secrets.FORGEJO_URL }}
@@ -270,14 +289,14 @@ jobs:
         run: |
           set -e
           if [ -z "$FORGEJO_URL" ] || [ -z "$FORGEJO_TOKEN" ]; then
-            echo "⚠️ Forgejo secrets not configured. Skipping mirror."
+            echo "⚠️ Forgejo secrets not configured. Skipping Forgejo release mirror."
             exit 0
           fi
 
-          echo "Mirroring release ${TAG} to Forgejo at ${FORGEJO_URL}..."
+          echo "Creating release on Forgejo at ${FORGEJO_URL}..."
 
           python3 - <<'PY'
-          import os, json, urllib.request
+          import os, json, urllib.request, urllib.error
 
           forgejo_url = os.environ["FORGEJO_URL"].rstrip("/")
           token = os.environ["FORGEJO_TOKEN"]
@@ -288,7 +307,6 @@ jobs:
           with open("RELEASE_NOTES.md", "r", encoding="utf-8") as f:
               body = f.read()
 
-          # 1. Create Release on Forgejo
           release_payload = json.dumps({
               "tag_name": tag,
               "target_commitish": "main",
@@ -316,11 +334,11 @@ jobs:
                   release_data = json.loads(resp.read().decode("utf-8"))
                   release_id = release_data["id"]
                   print(f"✅ Created Forgejo release ID: {release_id}")
-          except Exception as e:
-              print(f"❌ Failed to create Forgejo release: {e}")
+          except urllib.error.HTTPError as e:
+              error_body = e.read().decode("utf-8", errors="ignore")
+              print(f"❌ Failed to create Forgejo release (HTTP {e.code}): {error_body}")
               raise
 
-          # 2. Upload Asset (.zip) to Forgejo Release
           asset_url = f"{forgejo_url}/api/v1/repos/{repo_slug}/releases/{release_id}/assets?name=Computing%3ABox%20Website.zip"
 
           with open(zip_path, "rb") as f:
