@@ -23,7 +23,7 @@ jobs:
         run: |
           set -e
           msg="$(git log -1 --pretty=%B)"
-          echo "$msg" | tr -d '\r' | grep -qi "[skip ci]" && {
+          echo "$msg" | tr -d '\r' | grep -qi "\[skip ci\]" && {
             echo "Skipping (bot commit with [skip ci])"
             exit 0
           } || true
@@ -61,7 +61,7 @@ jobs:
               echo "❌ Already have v${VERSION}.z today. Refusing to create more than 26 releases/day."
               exit 1
             fi
-            next_letter="$(printf "%b" "$(printf '\\%03o' "$(( $(printf '\%d' "'$last_letter") + 1 ))")")"
+            next_letter="$(printf "%b" "$(printf '\\%03o' "$(( $(printf '%d' "'$last_letter") + 1 ))")")"
           fi
 
           TAG="${PREFIX}${next_letter}"
@@ -149,7 +149,7 @@ jobs:
         run: |
           set -e
 
-          PACKAGE_VERSION="$(echo "$TAG" \vert{} sed -E 's/^v([0-9]{2})\.0?([0-9]{1,2})\.0?([0-9]{1,2})\.?([a-z])$/\1.\2.\3-\4/')"
+          PACKAGE_VERSION="$(echo "$TAG" | sed -E 's/^v([0-9]{2})\.0?([0-9]{1,2})\.0?([0-9]{1,2})\.?([a-z])$/\1.\2.\3-\4/')"
 
           if [ -z "$PACKAGE_VERSION" ]; then
             echo "❌ Failed to derive PACKAGE_VERSION from TAG=$TAG"
@@ -175,4 +175,89 @@ jobs:
           cat src/generated/version.json
 
       - name: Set up Node
-        uses: actions/setup-node@
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Check Node version
+        shell: bash
+        run: |
+          node -v
+          npm -v
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          set -e
+          npm ci
+
+      - name: Update package.json and package-lock.json version
+        shell: bash
+        run: |
+          set -e
+          npm version "$PACKAGE_VERSION" --no-git-tag-version
+
+          echo "package.json version:"
+          node -p "require('./package.json').version"
+
+          echo "package-lock.json version:"
+          node -p "require('./package-lock.json').version"
+
+      - name: Commit and push version bump
+        shell: bash
+        run: |
+          set -e
+
+          if git diff --quiet -- package.json package-lock.json; then
+            echo "No version changes to commit."
+          else
+            git config user.name "release-bot"
+            git config user.email "release-bot@users.noreply.local"
+
+            git add package.json package-lock.json
+            git commit -m "chore(release): bump version to ${PACKAGE_VERSION} [skip ci]"
+            git push origin HEAD:main
+          fi
+
+      - name: Build Astro site
+        shell: bash
+        run: |
+          set -e
+          npm run build
+          test -d dist
+
+      - name: Create export zip (Computing:Box Website.zip)
+        shell: bash
+        run: |
+          set -e
+          if [ ! -d "dist" ]; then
+            echo "❌ dist/ folder not found in repo root"
+            ls -la
+            exit 1
+          fi
+
+          rm -f "Computing:Box Website.zip"
+          (cd dist && zip -r "../Computing:Box Website.zip" .)
+          test -s "Computing:Box Website.zip"
+          ls -lh "Computing:Box Website.zip"
+
+      - name: Create and push tag
+        shell: bash
+        run: |
+          set -e
+          git tag -f "$TAG"
+          git push origin "refs/tags/$TAG" --force
+
+      - name: Create GitHub release + upload asset
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          gh release create "$TAG" "${ZIP_PATH}#Computing:Box Website.zip" \
+            --title "$RELEASE_NAME" \
+            --notes-file RELEASE_NOTES.md \
+            --target main
+
+          echo "✅ Release created: ${RELEASE_NAME} (tag: ${TAG}) with asset uploaded"
