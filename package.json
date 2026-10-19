@@ -1,7 +1,7 @@
 {
   "name": "computing-box",
   "type": "module",
-  "version": "26.10.19-c",
+  "version": "26.10.19-d",
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
