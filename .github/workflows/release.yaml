@@ -261,3 +261,88 @@ jobs:
             --target main
 
           echo "✅ Release created: ${RELEASE_NAME} (tag: ${TAG}) with asset uploaded"
+
+      - name: Mirror release to Forgejo
+        shell: bash
+        env:
+          FORGEJO_URL: ${{ secrets.FORGEJO_URL }}
+          FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
+        run: |
+          set -e
+          if [ -z "$FORGEJO_URL" ] || [ -z "$FORGEJO_TOKEN" ]; then
+            echo "⚠️ Forgejo secrets not configured. Skipping mirror."
+            exit 0
+          }
+
+          echo "Mirroring release ${TAG} to Forgejo at ${FORGEJO_URL}..."
+
+          python3 - <<'PY'
+          import os, json, urllib.request
+
+          forgejo_url = os.environ["FORGEJO_URL"].rstrip("/")
+          token = os.environ["FORGEJO_TOKEN"]
+          tag = os.environ["TAG"]
+          name = os.environ["RELEASE_NAME"]
+          zip_path = os.environ["ZIP_PATH"]
+
+          with open("RELEASE_NOTES.md", "r", encoding="utf-8") as f:
+              body = f.read()
+
+          # 1. Create Release on Forgejo
+          release_payload = json.dumps({
+              "tag_name": tag,
+              "target_commitish": "main",
+              "name": name,
+              "body": body,
+              "draft": False,
+              "prerelease": False
+          }).encode("utf-8")
+
+          repo_slug = os.environ["GITHUB_REPOSITORY"] # e.g. MrLyallCSIT/Computing-Box
+          api_url = f"{forgejo_url}/api/v1/repos/{repo_slug}/releases"
+
+          req = urllib.request.Request(
+              api_url,
+              data=release_payload,
+              headers={
+                  "Authorization": f"token {token}",
+                  "Content-Type": "application/json"
+              },
+              method="POST"
+          )
+
+          try:
+              with urllib.request.urlopen(req) as resp:
+                  release_data = json.loads(resp.read().decode("utf-8"))
+                  release_id = release_data["id"]
+                  print(f"✅ Created Forgejo release ID: {release_id}")
+          except Exception as e:
+              print(f"❌ Failed to create Forgejo release: {e}")
+              raise
+
+          # 2. Upload Asset (.zip) to Forgejo Release
+          asset_url = f"{forgejo_url}/api/v1/repos/{repo_slug}/releases/{release_id}/assets?name=Computing%3ABox%20Website.zip"
+          
+          with open(zip_path, "rb") as f:
+              zip_data = f.read()
+
+          boundary = "----WebKitFormBoundary7MA4YWxkTrZu0gW"
+          body_data = (
+              f"--{boundary}\r\n"
+              f'Content-Disposition: form-data; name="attachment"; filename="Computing:Box Website.zip"\r\n'
+              f"Content-Type: application/zip\r\n\r\n"
+          ).encode("utf-8") + zip_data + f"\r\n--{boundary}--\r\n".encode("utf-8")
+
+          asset_req = urllib.request.Request(
+              asset_url,
+              data=body_data,
+              headers={
+                  "Authorization": f"token {token}",
+                  "Content-Type": f"multipart/form-data; boundary={boundary}"
+              },
+              method="POST"
+          )
+
+          with urllib.request.urlopen(asset_req) as resp:
+              print("✅ Successfully uploaded asset to Forgejo release")
+          PY
