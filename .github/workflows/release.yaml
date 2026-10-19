@@ -259,7 +259,7 @@ jobs:
           if [ -z "$FORGEJO_URL" ] || [ -z "$FORGEJO_TOKEN" ]; then
             echo "⚠️ Forgejo secrets not configured. Skipping Forgejo tag push."
             exit 0
-          }
+          fi
 
           forgejo_host="${FORGEJO_URL#*://}"
           repo_slug="alexander.lyall/Computing-Box"
