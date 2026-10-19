@@ -298,7 +298,7 @@ jobs:
               "prerelease": False
           }).encode("utf-8")
 
-          repo_slug = os.environ["GITHUB_REPOSITORY"]
+          repo_slug = "alexander.lyall/Computing-Box"
           api_url = f"{forgejo_url}/api/v1/repos/{repo_slug}/releases"
 
           req = urllib.request.Request(
