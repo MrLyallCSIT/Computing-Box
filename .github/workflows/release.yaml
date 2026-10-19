@@ -262,7 +262,7 @@ jobs:
 
           echo "✅ Release created: ${RELEASE_NAME} (tag: ${TAG}) with asset uploaded"
 
-- name: Mirror release to Forgejo
+      - name: Mirror release to Forgejo
         shell: bash
         env:
           FORGEJO_URL: ${{ secrets.FORGEJO_URL }}
