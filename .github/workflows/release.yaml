@@ -262,7 +262,7 @@ jobs:
 
           echo "✅ Release created: ${RELEASE_NAME} (tag: ${TAG}) with asset uploaded"
 
-      - name: Mirror release to Forgejo
+- name: Mirror release to Forgejo
         shell: bash
         env:
           FORGEJO_URL: ${{ secrets.FORGEJO_URL }}
@@ -272,7 +272,7 @@ jobs:
           if [ -z "$FORGEJO_URL" ] || [ -z "$FORGEJO_TOKEN" ]; then
             echo "⚠️ Forgejo secrets not configured. Skipping mirror."
             exit 0
-          }
+          fi
 
           echo "Mirroring release ${TAG} to Forgejo at ${FORGEJO_URL}..."
 
@@ -298,7 +298,7 @@ jobs:
               "prerelease": False
           }).encode("utf-8")
 
-          repo_slug = os.environ["GITHUB_REPOSITORY"] # e.g. MrLyallCSIT/Computing-Box
+          repo_slug = os.environ["GITHUB_REPOSITORY"]
           api_url = f"{forgejo_url}/api/v1/repos/{repo_slug}/releases"
 
           req = urllib.request.Request(
@@ -322,7 +322,7 @@ jobs:
 
           # 2. Upload Asset (.zip) to Forgejo Release
           asset_url = f"{forgejo_url}/api/v1/repos/{repo_slug}/releases/{release_id}/assets?name=Computing%3ABox%20Website.zip"
-          
+
           with open(zip_path, "rb") as f:
               zip_data = f.read()
 
